@@ -197,7 +197,14 @@
         .config_form br {
             display: block;
             content: "";
-            margin-top: 200px;
+            margin-top: 50px;
+        }
+
+        .config_form .config_status {
+            font-weight: bold;
+            font-size: 26px;
+            /*display: table-cell; */
+            display: none;
         }
     </style>
 </head>
@@ -259,12 +266,9 @@
             </tr>
             <tr>
             <td><button onclick="change_config()">Uložit nastavení</button></td>
-            <td colspan="2">Nastavení se nezdařilo--------------------------</td>
+            <td class="config_status" id="config_status" colspan="2">Nastavení se nezdařilo</td>
             </tr>
         </table>
-        <br style="margin-top: 1000px;">
-        <br>
-        <br>
         <br>
     </div>
     <div class="navmenu">
