@@ -1,0 +1,203 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>Jiri Jez DMP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <link rel="icon" href="data:,">
+    <style>
+        html {
+            font-family: Arial;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 30px;
+            color: white;
+            text-align: right;
+            padding-left: 10px;
+            padding: 21px;
+        }
+
+        .logo {
+            max-width: 100px;
+            padding: 5px;
+            float: left;
+        }
+
+        h2 {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2a3fc9;
+        }
+
+        .card {
+            background-color: #F8F7F9;
+            box-shadow: 2px 2px 15px 5px rgba(140, 140, 140, .5);
+            padding-top: 10px;
+            padding-bottom: 20px;
+            border-radius: 10px;
+            margin: 0 auto;
+        }
+
+        .top {
+            overflow: hidden;
+            background-color: #2a3fc9;
+            width: 100%;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .main {
+            padding: 30px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .button {
+            padding: 15px 50px;
+            font-size: 30px;
+            text-align: center;
+            outline: none;
+            color: #fff;
+            background-color: #0ffa6d;
+            border: #0ffa6d;
+            border-radius: 5px;
+            user-select: none;
+        }
+
+        .button:active {
+            background-color: #fa0f0f;
+            transform: translateY(2px);
+        }
+
+        .state {
+            font-size: 24px;
+            color: #120707;
+            font-weight: bold;
+        }
+
+        .slider {
+            appearance: none;
+            width: 90%;
+            height: 20px;
+            background-color: #7b7878;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px; 
+            background: #04AA6D;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top">
+        <img src="logo" alt="Logo" class="logo">
+        <h1>Jiří Jež DMP</h1>
+    </div>
+    <div class="main">
+        <div class="card">
+            <h2>Ovládání LED na GPIO2</h2>
+            <p><button id="button" class="button">Test LED</button></p>
+            <p class="state">Současný stav: <span id="state">Test</span></p>
+            <div class="slidecontainer">
+                <input type="range" min="1" max="100" value="50" class="slider" id="range1">
+            </div>
+            <p><button id="buttonsend" class="button">Odeslat</button></p>
+        </div>
+    </div>
+    </div>
+    <script>
+        var gateway = `ws://${window.location.hostname}/ws`;
+        var websocket;
+        var vstate;
+        var text;
+        var slider = document.getElementById("range1");
+        window.addEventListener("load", onLoad);
+        function initWebSocket() {
+            console.log("Trying to open a WebSocket connection...");
+            websocket = new WebSocket(gateway);
+            websocket.onopen = onOpen;
+            websocket.onclose = onClose;
+            websocket.onmessage = onMessage;
+        }
+        function onOpen(event) {
+            console.log("Connection opened");
+        }
+        function onClose(event) {
+            console.log("Connection closed");
+            setTimeout(initWebSocket, 2000);
+        }
+        function onMessage(event) {
+            console.log(event.data);
+            rmsg = JSON.parse(event.data);
+            if (rmsg.type == "button") {
+                if (rmsg.id == 1) {
+                    if (vstate =="ON") {
+                        vstate = "OFF";
+                        text = "Zapnout LED";
+                    }
+                    else {
+                        vstate = "ON";
+                        text = "Vypnout LED";
+                    }
+                }
+                else {
+                    vstate = "OFF";
+                    text = "Zapnout LED"; 
+                }
+                document.getElementById("state").innerHTML = vstate;
+                document.getElementById("button").innerText = text;
+            }
+            if (rmsg.type == "svalue") {
+                if (rmsg.id == 1) {
+                    slider.value = rmsg.value
+                }
+            }
+        }
+        function onLoad(event) {
+            var startstate = %d;
+            if (startstate == 1) {
+                vstate = "ON";
+                text = "Vypnout LED";
+            }
+            else {
+                vstate = "OFF";
+                text = "Zapnout LED";
+            }
+            document.getElementById("state").innerHTML = vstate;
+            document.getElementById("button").innerText = text;
+            initWebSocket();
+            initButton();
+        }
+        function initButton() {
+            document.getElementById("button").addEventListener("click", button1);
+            document.getElementById("buttonsend").addEventListener("click", buttonsendf);
+        }
+        function wsend(type,id,value=1) {
+            websocket.send(JSON.stringify({
+                "type": type,
+                "id": Number(id),
+                "value": Number(value)
+            }));
+        }
+
+        function button1() {
+            wsend("button",1);
+        }
+        
+        function buttonsendf() {
+            wsend("svalue",1,slider.value);
+        }
+    </script>
+</body>
+
+</html>
