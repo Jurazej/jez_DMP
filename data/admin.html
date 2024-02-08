@@ -10,6 +10,10 @@
             font-family: Arial;
         }
 
+        body {
+             margin: 0;
+        }
+
         .navmenu ul {
             list-style-type: none;
             margin: 0;
@@ -46,6 +50,12 @@
             background-color: #100e91;
         }
 
+        .top {
+            overflow: hidden;
+            background-color: #2a3fc9;
+            width: 100%;
+        }
+        
         .top h1 {
             margin: 0;
             font-size: 30px;
@@ -84,15 +94,6 @@
             margin: 0 auto;
         }
 
-        .top {
-            overflow: hidden;
-            background-color: #2a3fc9;
-            width: 100%;
-        }
-
-        body {
-            margin: 0;
-        }
 
         .login_form {
             display: block;
@@ -313,6 +314,10 @@
                         document.getElementById("status").innerHTML= "Přihlášení proběhlo úspěšně";
                         document.getElementById("status").style.display = "block";
                     }
+                    document.getElementById("cv_ssid").innerHTML = rmsg.currentconfig.ssid;
+                    document.getElementById("cv_wifipass").innerHTML = rmsg.currentconfig.wifi_pass;
+                    document.getElementById("cv_mdns").innerHTML = rmsg.currentconfig.mdns;
+                    document.getElementById("cv_maxcon").innerHTML = rmsg.currentconfig.maxcon;
                     setTimeout(function() {
                         document.getElementById("login_form").style.display = "none";
                     }, 1000);
@@ -384,7 +389,7 @@
                     cfgts["ssid"] = config_ssid;
                 }
                 if (config_wifipass != "") {
-                    cfgts["wifipass"] = config_wifipass;
+                    cfgts["wifi_pass"] = config_wifipass;
                 }
                 if (config_maxcon != "") {
                     cfgts["maxcon"] = config_maxcon;
@@ -393,7 +398,7 @@
                     cfgts["mdns"] = config_mdns;
                 }
                 if (config_adminpass != "") {
-                    cfgts["adminpass"] = config_adminpass;
+                    cfgts["admin_pass"] = config_adminpass;
                 }
                 cfgts["reqpass"] = inputpass;
                 wsend("config",JSON.stringify(cfgts));
