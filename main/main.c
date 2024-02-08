@@ -39,7 +39,7 @@ int led_state = 0;
 char index_html[8192];
 char response_data[8192];
 char logo_svg[6650];
-char admin_html[13000];
+char admin_html[14000];
 
 struct user_config {
 	char *ssid;
@@ -92,6 +92,31 @@ void load_config(){
 	user_config.mdns = cJSON_GetObjectItem(root,"mdns")->valuestring;
 	user_config.admin_pass = cJSON_GetObjectItem(root,"admin_pass")->valuestring;
     free(loaded_json_config);
+}
+
+int save_config(struct user_config edited_u_conf){
+	int success;
+	if (edited_u_conf.ssid != NULL){
+		ESP_LOGE(TAG, "Changing ssid: %s", edited_u_conf.ssid);
+		success = 1;
+	}
+	if (edited_u_conf.wifi_pass != NULL){
+		ESP_LOGE(TAG, "Changing wifi_pass: %s", edited_u_conf.wifi_pass);
+		success = 1;
+	}
+	if (edited_u_conf.maxcon != 0){
+		ESP_LOGE(TAG, "Changing maxcon: %u", edited_u_conf.maxcon);
+		success = 1;
+	}
+	if (edited_u_conf.mdns != NULL){
+		ESP_LOGE(TAG, "Changing mdns: %s", edited_u_conf.mdns);
+		success = 1;
+	}
+	if (edited_u_conf.admin_pass != NULL){
+		ESP_LOGE(TAG, "Changing admin_pass: %s", edited_u_conf.admin_pass);
+		success = 1;
+	}
+	return success;
 }
 
 // Funkce pro nastavení a spuštění Wi-Fi Access Point (AP)
@@ -327,10 +352,17 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 			if (strcmp(pass, user_config.admin_pass) == 0){
 				loginval = 1;
 			}
-			cJSON *loginjson;
+			cJSON *loginjson, *currentconfig;
 			loginjson=cJSON_CreateObject();
 			cJSON_AddItemToObject(loginjson, "type", cJSON_CreateString("login"));
 			cJSON_AddItemToObject(loginjson, "value", cJSON_CreateNumber(loginval));
+			if (loginval == 1) {
+				cJSON_AddItemToObject(loginjson, "currentconfig", currentconfig=cJSON_CreateObject());
+				cJSON_AddItemToObject(currentconfig, "ssid", cJSON_CreateString(user_config.ssid));
+				cJSON_AddItemToObject(currentconfig, "wifi_pass", cJSON_CreateString(user_config.wifi_pass));
+				cJSON_AddItemToObject(currentconfig, "maxcon", cJSON_CreateNumber(user_config.maxcon));
+				cJSON_AddItemToObject(currentconfig, "mdns", cJSON_CreateString(user_config.mdns));
+			}
 			free(buf);
 			char *loginjsonout = cJSON_Print(loginjson);
 			ESP_LOGI(TAG, "Json out: %s", loginjsonout);
@@ -343,6 +375,45 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 			ws_pkt.type = HTTPD_WS_TYPE_TEXT;
 			httpd_ws_send_frame_async(req->handle, httpd_req_to_sockfd(req), &ws_pkt);
 		}
+		else if (strcmp(typew, "config") == 0){
+
+			ESP_LOGI(TAG, "Type is %s", typew);
+			cJSON *in_config = cJSON_GetObjectItem(root,"value");
+			char *reqpass = cJSON_GetObjectItem(in_config,"reqpass")->valuestring;
+			ESP_LOGI(TAG, "2DEBUG");
+			int loginval = 0;
+			if (strcmp(reqpass, user_config.admin_pass) == 0){
+				loginval = 1;
+			}
+			cJSON *loginjson;
+			ESP_LOGI(TAG, "3DEBUG");
+			loginjson=cJSON_CreateObject();
+			cJSON_AddItemToObject(loginjson, "type", cJSON_CreateString("login"));
+			cJSON_AddItemToObject(loginjson, "value", cJSON_CreateNumber(loginval));
+			ESP_LOGI(TAG, "4DEBUG");
+			if (loginval == 1) {
+				struct user_config edited_u_conf;
+				edited_u_conf.ssid = cJSON_GetObjectItemCaseSensitive(in_config,"ssid")->valuestring;
+				edited_u_conf.wifi_pass = cJSON_GetObjectItemCaseSensitive(in_config,"wifi_pass")->valuestring;
+				edited_u_conf.maxcon = cJSON_GetObjectItemCaseSensitive(in_config,"maxcon")->valueint;
+				edited_u_conf.mdns = cJSON_GetObjectItemCaseSensitive(in_config,"mdns")->valuestring;
+				edited_u_conf.admin_pass = cJSON_GetObjectItemCaseSensitive(in_config,"admin_pass")->valuestring;
+				int change_success = save_config(edited_u_conf);
+				cJSON_AddItemToObject(loginjson, "change_success", cJSON_CreateNumber(change_success));
+			}
+			free(buf);
+			char *loginjsonout = cJSON_Print(loginjson);
+			ESP_LOGI(TAG, "Json out: %s", loginjsonout);
+
+			httpd_ws_frame_t ws_pkt;
+			memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
+			ws_pkt.payload = (uint8_t *)loginjsonout;	//Nastavení atributu přenášené zprávy na data
+			//ws_pkt.payload = (uint8_t *)data;			//Nastavení atributu přenášené zprávy na data
+			ws_pkt.len = strlen(loginjsonout);					//Nastavení atributu délky podle délky bufferu
+			ws_pkt.type = HTTPD_WS_TYPE_TEXT;
+			httpd_ws_send_frame_async(req->handle, httpd_req_to_sockfd(req), &ws_pkt);
+		}
+    	cJSON_Delete(root);
     /*
     if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
         strcmp((char *)ws_pkt.payload, "button1") == 0) //Podmínka, zda je přijatá zpráva "button1" (bylo stisknuto tlačítko 1 na webu)
