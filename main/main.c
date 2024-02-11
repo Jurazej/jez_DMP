@@ -35,18 +35,20 @@ int led_state = 0;
 #define DEFAULTCONFIG_PATH "/spiffs/default_config.txt"
 #define CONFIG_PATH "/spiffs/config.txt"
 
-//Deklarace proměnných, které slouží pro uložení html kódu webové stránky
-char index_html[8192];
-char response_data[8192];
-char logo_svg[6650];
-char admin_html[14000];
+//Deklarace proměnných a struktur
+struct files_t {
+	char* index_html;
+	char* response_data;
+	char* logo_svg;
+	char* admin_html;
+}files;
 
 struct user_config {
-	char *ssid;
-	char *wifi_pass;
-	uint8_t maxcon;
-	char *mdns;
-	char *admin_pass;
+	char* ssid;
+	char* wifi_pass;
+	int maxcon;
+	char* mdns;
+	char* admin_pass;
 }user_config;
 
 httpd_handle_t server = NULL;
@@ -67,23 +69,24 @@ void load_config(){
 
     ESP_ERROR_CHECK(esp_vfs_spiffs_register(&conf));	//Registrace SPIFFS pomocí nastavené konfigurace
 
-
-    struct stat st;
-    if (stat(CONFIG_PATH, &st))
-    {
-        ESP_LOGE(TAG, "config file not found");
-        return;
-    }
     char *loaded_json_config;
-    loaded_json_config = (char *)malloc(st.st_size);
-    FILE *fp = fopen(CONFIG_PATH, "r");
 
-    if (fread(loaded_json_config, st.st_size, 1, fp) == 0)
+    FILE *fp = fopen(CONFIG_PATH, "r");
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Chyba při otevírání souboru");
+    }
+    fseek(fp, 0, SEEK_END);
+    size_t file_size = ftell(fp);
+    rewind(fp);
+    loaded_json_config = (char *)malloc(file_size+1);
+    if (fread(loaded_json_config, file_size, 1, fp) == 0)
     {
         ESP_LOGE(TAG, "fread failed");
     }
+    loaded_json_config[file_size] = '\0';
     fclose(fp);
-    ESP_LOGE(TAG, "Loaded config: %s", loaded_json_config);
+
+    ESP_LOGI(TAG, "Loaded config: %s", loaded_json_config);
 
 	cJSON *root = cJSON_Parse(loaded_json_config);
 	user_config.ssid = cJSON_GetObjectItem(root,"ssid")->valuestring;
@@ -95,28 +98,59 @@ void load_config(){
 }
 
 int save_config(struct user_config edited_u_conf){
-	int success;
+	FILE *f = fopen(CONFIG_PATH, "w");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for writing");
+        return 0;
+    }
+    cJSON *conf_json = cJSON_CreateObject();
 	if (edited_u_conf.ssid != NULL){
-		ESP_LOGE(TAG, "Changing ssid: %s", edited_u_conf.ssid);
-		success = 1;
+		ESP_LOGI(TAG, "Changing ssid: %s", edited_u_conf.ssid);
+		cJSON_AddStringToObject(conf_json,"ssid",edited_u_conf.ssid);
+	}
+	else {
+		cJSON_AddStringToObject(conf_json,"ssid",user_config.ssid);
 	}
 	if (edited_u_conf.wifi_pass != NULL){
-		ESP_LOGE(TAG, "Changing wifi_pass: %s", edited_u_conf.wifi_pass);
-		success = 1;
+		ESP_LOGI(TAG, "Changing wifi_pass: %s", edited_u_conf.wifi_pass);
+		cJSON_AddStringToObject(conf_json,"wifi_pass",edited_u_conf.wifi_pass);
+	}
+	else {
+		cJSON_AddStringToObject(conf_json,"wifi_pass",user_config.wifi_pass);
 	}
 	if (edited_u_conf.maxcon != 0){
-		ESP_LOGE(TAG, "Changing maxcon: %u", edited_u_conf.maxcon);
-		success = 1;
+		ESP_LOGI(TAG, "Changing maxcon: %d", edited_u_conf.maxcon);
+		cJSON_AddNumberToObject(conf_json,"maxcon",edited_u_conf.maxcon);
+	}
+	else {
+		cJSON_AddNumberToObject(conf_json,"maxcon",user_config.maxcon);
 	}
 	if (edited_u_conf.mdns != NULL){
-		ESP_LOGE(TAG, "Changing mdns: %s", edited_u_conf.mdns);
-		success = 1;
+		ESP_LOGI(TAG, "Changing mdns: %s", edited_u_conf.mdns);
+		cJSON_AddStringToObject(conf_json,"mdns",edited_u_conf.mdns);
+	}
+	else {
+		cJSON_AddStringToObject(conf_json,"mdns",user_config.mdns);
 	}
 	if (edited_u_conf.admin_pass != NULL){
-		ESP_LOGE(TAG, "Changing admin_pass: %s", edited_u_conf.admin_pass);
-		success = 1;
+		ESP_LOGI(TAG, "Changing admin_pass: %s", edited_u_conf.admin_pass);
+		cJSON_AddStringToObject(conf_json,"admin_pass",edited_u_conf.admin_pass);
 	}
-	return success;
+	else {
+		cJSON_AddStringToObject(conf_json,"admin_pass",user_config.admin_pass);
+	}
+
+	char *conf_to_save = cJSON_Print(conf_json);
+	ESP_LOGI(TAG, "Saving config: %s", conf_to_save);
+    if (fwrite(conf_to_save, 1, strlen(conf_to_save), f) != strlen(conf_to_save)) {
+        ESP_LOGE(TAG, "Změněný config soubor nelze uložit");
+        fclose(f);
+        return 0;
+    } else {
+        ESP_LOGI(TAG, "Změněný config soubor úspěšně uložen");
+        fclose(f);
+        return 1;
+    }
 }
 
 // Funkce pro nastavení a spuštění Wi-Fi Access Point (AP)
@@ -158,68 +192,71 @@ void start_mdns_service()
     mdns_hostname_set(user_config.mdns);
 }
 
-//Funkce pro načtení souboru index.html a uložení do proměnné index_html
 static void initi_web_page_buffer(void)
 {
-    memset((void *)index_html, 0, sizeof(index_html));	//Vyplnění paměťové oblasti nulami
-    memset((void *)logo_svg, 0, sizeof(logo_svg));
-    memset((void *)admin_html, 0, sizeof(admin_html));
-
-    //Získání informací o souboru "index.html"
-    struct stat st;
-    if (stat(INDEX_PATH, &st))
-    {
-        ESP_LOGE(TAG, "index.html not found");
-        return;
+    // Načtení index.html z paměti
+    FILE *fp = fopen(INDEX_PATH, "r");
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Chyba při otevírání souboru");
     }
-    FILE *fp = fopen(INDEX_PATH, "r");	//Otevření souboru "index.html" pro čtení
-    //Přečtení dat ze souboru a uložení do index_html (pokud čtení nevyjde, je zahlášena chyba)
-    if (fread(index_html, st.st_size, 1, fp) == 0)
+    fseek(fp, 0, SEEK_END);
+    size_t file_size = ftell(fp);
+    rewind(fp);
+    files.index_html = (char *)malloc(file_size+1);
+    if (fread(files.index_html, file_size, 1, fp) == 0)
     {
         ESP_LOGE(TAG, "fread failed");
     }
-    fclose(fp);	//Uzavření souboru po provedení operace čtení
+    files.index_html[file_size] = '\0';
+    fclose(fp);
 
-    // Načtení loga z paměti
-    if (stat(LOGO_PATH, &st))
-    {
-        ESP_LOGE(TAG, "logo.svg not found");
-        return;
-    }
+    // Načtení logo.svg z paměti
     fp = fopen(LOGO_PATH, "r");
-    if (fread(logo_svg, st.st_size, 1, fp) == 0)
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Chyba při otevírání souboru");
+    }
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+    files.logo_svg = (char *)malloc(file_size+1);
+    if (fread(files.logo_svg, file_size, 1, fp) == 0)
     {
         ESP_LOGE(TAG, "fread failed");
     }
+    files.logo_svg[file_size] = '\0';
     fclose(fp);
 
     // Načtení admin.html z paměti
-    if (stat(ADMIN_PATH, &st))
-    {
-        ESP_LOGE(TAG, "admin.html not found");
-        return;
-    }
     fp = fopen(ADMIN_PATH, "r");
-    if (fread(admin_html, st.st_size, 1, fp) == 0)
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Chyba při otevírání souboru");
+    }
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+    files.admin_html = (char *)malloc(file_size+1);
+    if (fread(files.admin_html, file_size, 1, fp) == 0)
     {
         ESP_LOGE(TAG, "fread failed");
     }
+    files.admin_html[file_size] = '\0';
     fclose(fp);
 }
 
 //Funkce pro obsluhu HTTP GET požadavků
 esp_err_t get_req_handler(httpd_req_t *req)
 {
+	files.response_data = (char *)malloc(strlen(files.index_html)+1);
     int response;
     if(led_state)
     {
-        sprintf(response_data, index_html, 1);
+        sprintf(files.response_data, files.index_html, 1);
     }
     else
     {
-        sprintf(response_data, index_html, 0);
+        sprintf(files.response_data, files.index_html, 0);
     }
-    response = httpd_resp_send(req, response_data, HTTPD_RESP_USE_STRLEN);
+    response = httpd_resp_send(req, files.response_data, HTTPD_RESP_USE_STRLEN);
     return response;
 }
 
@@ -354,14 +391,14 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 			}
 			cJSON *loginjson, *currentconfig;
 			loginjson=cJSON_CreateObject();
-			cJSON_AddItemToObject(loginjson, "type", cJSON_CreateString("login"));
-			cJSON_AddItemToObject(loginjson, "value", cJSON_CreateNumber(loginval));
+			cJSON_AddStringToObject(loginjson, "type", "login");
+			cJSON_AddNumberToObject(loginjson, "value", loginval);
 			if (loginval == 1) {
 				cJSON_AddItemToObject(loginjson, "currentconfig", currentconfig=cJSON_CreateObject());
-				cJSON_AddItemToObject(currentconfig, "ssid", cJSON_CreateString(user_config.ssid));
-				cJSON_AddItemToObject(currentconfig, "wifi_pass", cJSON_CreateString(user_config.wifi_pass));
-				cJSON_AddItemToObject(currentconfig, "maxcon", cJSON_CreateNumber(user_config.maxcon));
-				cJSON_AddItemToObject(currentconfig, "mdns", cJSON_CreateString(user_config.mdns));
+				cJSON_AddStringToObject(currentconfig, "ssid", user_config.ssid);
+				cJSON_AddStringToObject(currentconfig, "wifi_pass", user_config.wifi_pass);
+				cJSON_AddNumberToObject(currentconfig, "maxcon", user_config.maxcon);
+				cJSON_AddStringToObject(currentconfig, "mdns", user_config.mdns);
 			}
 			free(buf);
 			char *loginjsonout = cJSON_Print(loginjson);
@@ -380,26 +417,41 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 			ESP_LOGI(TAG, "Type is %s", typew);
 			cJSON *in_config = cJSON_GetObjectItem(root,"value");
 			char *reqpass = cJSON_GetObjectItem(in_config,"reqpass")->valuestring;
-			ESP_LOGI(TAG, "2DEBUG");
 			int loginval = 0;
 			if (strcmp(reqpass, user_config.admin_pass) == 0){
 				loginval = 1;
 			}
 			cJSON *loginjson;
-			ESP_LOGI(TAG, "3DEBUG");
 			loginjson=cJSON_CreateObject();
-			cJSON_AddItemToObject(loginjson, "type", cJSON_CreateString("login"));
-			cJSON_AddItemToObject(loginjson, "value", cJSON_CreateNumber(loginval));
-			ESP_LOGI(TAG, "4DEBUG");
+			cJSON_AddStringToObject(loginjson, "type", "config_change_status");
+			cJSON_AddNumberToObject(loginjson, "value", loginval);
 			if (loginval == 1) {
 				struct user_config edited_u_conf;
-				edited_u_conf.ssid = cJSON_GetObjectItemCaseSensitive(in_config,"ssid")->valuestring;
-				edited_u_conf.wifi_pass = cJSON_GetObjectItemCaseSensitive(in_config,"wifi_pass")->valuestring;
-				edited_u_conf.maxcon = cJSON_GetObjectItemCaseSensitive(in_config,"maxcon")->valueint;
-				edited_u_conf.mdns = cJSON_GetObjectItemCaseSensitive(in_config,"mdns")->valuestring;
-				edited_u_conf.admin_pass = cJSON_GetObjectItemCaseSensitive(in_config,"admin_pass")->valuestring;
+				cJSON *in_ssid = cJSON_GetObjectItemCaseSensitive(in_config,"ssid");
+			    if (cJSON_IsString(in_ssid) && (in_ssid->valuestring != NULL)) {
+			    	edited_u_conf.ssid = cJSON_GetObjectItem(in_config,"ssid")->valuestring;
+			    }
+				cJSON *in_wifi_pass = cJSON_GetObjectItemCaseSensitive(in_config,"wifi_pass");
+			    if (cJSON_IsString(in_wifi_pass) && (in_wifi_pass->valuestring != NULL)) {
+			    	edited_u_conf.wifi_pass = cJSON_GetObjectItem(in_config,"wifi_pass")->valuestring;
+			    }
+			    cJSON *in_maxcon = cJSON_GetObjectItemCaseSensitive(in_config,"maxcon");
+				if (cJSON_IsNumber(in_maxcon) && (in_maxcon->valueint != 0)) {
+					edited_u_conf.maxcon = cJSON_GetObjectItem(in_config,"maxcon")->valueint;
+				}
+				else {
+					edited_u_conf.maxcon = 0;
+				}
+				cJSON *in_mdns = cJSON_GetObjectItemCaseSensitive(in_config,"mdns");
+			    if (cJSON_IsString(in_mdns) && (in_mdns->valuestring != NULL)) {
+			    	edited_u_conf.mdns = cJSON_GetObjectItem(in_config,"mdns")->valuestring;
+			    }
+			    cJSON *in_admin_pass = cJSON_GetObjectItemCaseSensitive(in_config,"admin_pass");
+				if (cJSON_IsString(in_admin_pass) && (in_admin_pass->valuestring != NULL)) {
+					edited_u_conf.admin_pass = cJSON_GetObjectItem(in_config,"admin_pass")->valuestring;
+				}
 				int change_success = save_config(edited_u_conf);
-				cJSON_AddItemToObject(loginjson, "change_success", cJSON_CreateNumber(change_success));
+				cJSON_AddNumberToObject(loginjson, "change_success", change_success);
 			}
 			free(buf);
 			char *loginjsonout = cJSON_Print(loginjson);
@@ -407,9 +459,8 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 
 			httpd_ws_frame_t ws_pkt;
 			memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
-			ws_pkt.payload = (uint8_t *)loginjsonout;	//Nastavení atributu přenášené zprávy na data
-			//ws_pkt.payload = (uint8_t *)data;			//Nastavení atributu přenášené zprávy na data
-			ws_pkt.len = strlen(loginjsonout);					//Nastavení atributu délky podle délky bufferu
+			ws_pkt.payload = (uint8_t *)loginjsonout;
+			ws_pkt.len = strlen(loginjsonout);
 			ws_pkt.type = HTTPD_WS_TYPE_TEXT;
 			httpd_ws_send_frame_async(req->handle, httpd_req_to_sockfd(req), &ws_pkt);
 		}
@@ -432,7 +483,7 @@ esp_err_t logo_get_handler(httpd_req_t *req)
     httpd_resp_set_type(req, "image/svg+xml");
 
     //Odeslání obsahu logo.svg jako odpovědi na GET požadavek
-    if (httpd_resp_send(req, logo_svg, HTTPD_RESP_USE_STRLEN) != ESP_OK)
+    if (httpd_resp_send(req, files.logo_svg, strlen(files.logo_svg)) != ESP_OK)
     {
         ESP_LOGE(TAG, "Failed to send logo.svg");
         return ESP_FAIL;
@@ -443,7 +494,7 @@ esp_err_t logo_get_handler(httpd_req_t *req)
 
 esp_err_t get_admin_handler(httpd_req_t *req)
 {
-    if (httpd_resp_send(req, admin_html, HTTPD_RESP_USE_STRLEN) != ESP_OK)
+    if (httpd_resp_send(req, files.admin_html, HTTPD_RESP_USE_STRLEN) != ESP_OK)
     {
         ESP_LOGE(TAG, "Failed to send admin.html");
         return ESP_FAIL;
