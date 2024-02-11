@@ -204,7 +204,6 @@
         .config_form .config_status {
             font-weight: bold;
             font-size: 26px;
-            /*display: table-cell; */
             display: none;
         }
     </style>
@@ -330,6 +329,20 @@
                     document.getElementById("login_button").disabled = false;
                 }
             }
+            if (rmsg.type == "config_change_status") {
+                if (rmsg.value == 1) {  
+                    if (rmsg.change_success == 1) {
+                        document.getElementById("config_status").style.display = "table-cell";
+                        document.getElementById("config_status").style.color = "#09c212";
+                        document.getElementById("config_status").innerHTML= "Změna nastavení proběhla úspěšně";
+                    }
+                    else {
+                        document.getElementById("config_status").style.display = "table-cell";
+                        document.getElementById("config_status").style.color = "#e01616";
+                        document.getElementById("config_status").innerHTML= "Změna nastavení se nezdařila";
+                    }
+                }   
+            }
         }
 
         function wsend(type,value=1) {
@@ -392,7 +405,7 @@
                     cfgts["wifi_pass"] = config_wifipass;
                 }
                 if (config_maxcon != "") {
-                    cfgts["maxcon"] = config_maxcon;
+                    cfgts["maxcon"] = Number(config_maxcon);
                 }
                 if (config_mdns != "") {
                     cfgts["mdns"] = config_mdns;
@@ -401,7 +414,7 @@
                     cfgts["admin_pass"] = config_adminpass;
                 }
                 cfgts["reqpass"] = inputpass;
-                wsend("config",JSON.stringify(cfgts));
+                wsend("config",cfgts);
             }
         }
 
