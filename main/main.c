@@ -38,7 +38,6 @@ int led_state = 0;
 //Deklarace proměnných a struktur
 struct files_t {
 	char* index_html;
-	char* response_data;
 	char* logo_svg;
 	char* admin_html;
 }files;
@@ -59,7 +58,7 @@ struct async_resp_arg {
 
 cJSON json_in;
 
-void load_config(){
+void load_config(void){
 	//Nastavení konfigurace pro SPIFFS (SPI Flash File System)
     esp_vfs_spiffs_conf_t conf = {
         .base_path = "/spiffs",
@@ -243,23 +242,6 @@ static void initi_web_page_buffer(void)
     fclose(fp);
 }
 
-//Funkce pro obsluhu HTTP GET požadavků
-esp_err_t get_req_handler(httpd_req_t *req)
-{
-	files.response_data = (char *)malloc(strlen(files.index_html)+1);
-    int response;
-    if(led_state)
-    {
-        sprintf(files.response_data, files.index_html, 1);
-    }
-    else
-    {
-        sprintf(files.response_data, files.index_html, 0);
-    }
-    response = httpd_resp_send(req, files.response_data, HTTPD_RESP_USE_STRLEN);
-    return response;
-}
-
 //Funkce pro odesílání zpráv přes WebSocket
 static void ws_async_send(void *arg)
 {
@@ -355,7 +337,6 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     	char *tempjson = cJSON_GetObjectItem(&json_in,"type")->valuestring;
     	ESP_LOGI(TAG, "Json in: %s", tempjson);
 
-
     	char *typew = cJSON_GetObjectItem(root,"type")->valuestring;
 
     	if (strcmp(typew, "svalue") == 0){
@@ -364,6 +345,17 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     		ESP_LOGI(TAG, "ID is %d", idw);
     		int valuew = cJSON_GetObjectItem(root,"value")->valueint;
     		ESP_LOGI(TAG, "Value is %d", valuew);
+    		switch(idw){
+    		case 1:
+
+    			break;
+    		case 2:
+
+    			break;
+    		case 3:
+
+    			break;
+    		}
     		free(buf);
     		return trigger_async_send(req->handle, req); //Odeslání dat na web
     	}
@@ -464,6 +456,16 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 			ws_pkt.type = HTTPD_WS_TYPE_TEXT;
 			httpd_ws_send_frame_async(req->handle, httpd_req_to_sockfd(req), &ws_pkt);
 		}
+		else if (strcmp(typew, "restart") == 0){
+
+			ESP_LOGI(TAG, "Type is %s", typew);
+			cJSON *in_value = cJSON_GetObjectItem(root,"value");
+			char *reqpass = cJSON_GetObjectItem(in_value,"reqpass")->valuestring;
+			if (strcmp(reqpass, user_config.admin_pass) == 0){
+				ESP_LOGI(TAG, "Zarizeni se restartuje");
+				esp_restart();
+			}
+		}
     	cJSON_Delete(root);
     /*
     if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
@@ -477,7 +479,18 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     return ESP_OK;
 }
 
-esp_err_t logo_get_handler(httpd_req_t *req)
+esp_err_t get_index_handler(httpd_req_t *req)
+{
+    if (httpd_resp_send(req, files.index_html, HTTPD_RESP_USE_STRLEN) != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to send index.html");
+        return ESP_FAIL;
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t get_logo_handler(httpd_req_t *req)
 {
     //Nastavení HTTP hlavičky s MIME typem pro SVG soubor
     httpd_resp_set_type(req, "image/svg+xml");
@@ -511,7 +524,7 @@ httpd_handle_t setup_server(void)
     httpd_uri_t uri_get = {
         .uri = "/",
         .method = HTTP_GET,
-        .handler = get_req_handler,
+        .handler = get_index_handler,
         .user_ctx = NULL};
 
     httpd_uri_t uri_admin_get = {
@@ -530,7 +543,7 @@ httpd_handle_t setup_server(void)
     httpd_uri_t uri_logo_get = {
 		.uri = "/logo",
 		.method = HTTP_GET,
-		.handler = logo_get_handler,
+		.handler = get_logo_handler,
 		.user_ctx = NULL};
 
     if (httpd_start(&server, &config) == ESP_OK)
