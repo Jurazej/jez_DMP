@@ -53,7 +53,7 @@
         .top {
             overflow: hidden;
             background-color: #2a3fc9;
-            width: 100%;
+            width: auto;
         }
         
         .top h1 {
@@ -180,8 +180,8 @@
         }
 
         .config_form button {
-            padding: 10px 40px;
-            margin: 10px;
+            padding: 10px 10%;
+            margin: 10px 0px;
             font-size: 22px;
             outline: none;
             color: #fff;
@@ -206,6 +206,15 @@
             font-size: 26px;
             display: none;
         }
+
+        .config_form .restart_button {
+            background-color: #f5140c;
+        }
+        
+        .config_form .restart_button:active {
+            background-color: #920c0c;
+        }
+    
     </style>
 </head>
 
@@ -224,9 +233,7 @@
                     <input type="password"
                             id="password" 
                             placeholder="Zadejte heslo" required> 
-                    <button class="login_button" id="login_button" onclick="login()"> 
-                        Potvrdit 
-                    </button> 
+                    <button class="login_button" id="login_button" onclick="login()">Potvrdit</button> 
                 <h3 class="login_status" id="status">Pokus o automatické přihlášení</h3>
             </div>
         </div>
@@ -235,38 +242,41 @@
         <h1>Nastavení</h1>
         <table>
             <tr>
-            <th></th>
-            <th>Aktuální hodnota</th>
-            <th>Nová hodnota</th>
+                <th></th>
+                <th>Aktuální hodnota</th>
+                <th>Nová hodnota</th>
             </tr>
             <tr>
-            <td>WiFi SSID</td>
-            <td id="cv_ssid">NA</td>
-            <td><input type="text" onblur="checkLength(this)" id="config_ssid" minlength="1" maxlength="30"></td>
+                <td>WiFi SSID</td>
+                <td id="cv_ssid">NA</td>
+                <td><input type="text" onblur="checkLength(this)" id="config_ssid" minlength="1" maxlength="30"></td>
             </tr>
             <tr>
-            <td>WiFi heslo</td>
-            <td id="cv_wifipass">NA</td>
-            <td><input type="text" onblur="checkLength(this)" id="config_wifipass" minlength="8" maxlength="60"></td>
+                <td>WiFi heslo</td>
+                <td id="cv_wifipass">NA</td>
+                <td><input type="text" onblur="checkLength(this)" id="config_wifipass" minlength="8" maxlength="60"></td>
             </tr>
             <tr>
-            <td>Maximální počet zařízení připojených k WiFi</td>
-            <td id="cv_maxcon">NA</td>
-            <td><input type="number" onblur="checkValue(this)" id="config_maxcon" min="1" max="10"></td>
+                <td>Maximální počet zařízení připojených k WiFi</td>
+                <td id="cv_maxcon">NA</td>
+                <td><input type="number" onblur="checkValue(this)" id="config_maxcon" min="1" max="10"></td>
             </tr>
             <tr>
-            <td>mDNS</td>
-            <td id="cv_mdns">NA</td>
-            <td><input type="text" onblur="checkLength(this)" id="config_mdns" minlength="3" maxlength="16"></td>
+                <td>mDNS</td>
+                <td id="cv_mdns">NA</td>
+                <td><input type="text" onblur="checkLength(this)" id="config_mdns" minlength="3" maxlength="16"></td>
             </tr>
             <tr>
-            <td>Heslo ke správě</td>
-            <td id="cv_adminpass">******</td>
-            <td><input type="text" onblur="checkLength(this)" id="config_adminpass" minlength="4" maxlength="60"></td>
+                <td>Heslo ke správě</td>
+                <td id="cv_adminpass">******</td>
+                <td><input type="text" onblur="checkLength(this)" id="config_adminpass" minlength="4" maxlength="60"></td>
             </tr>
             <tr>
-            <td><button onclick="change_config()">Uložit nastavení</button></td>
-            <td class="config_status" id="config_status" colspan="2">Nastavení se nezdařilo</td>
+                <td><button onclick="change_config()">Uložit nastavení</button></td>
+                <td class="config_status" id="config_status" colspan="2">Nastavení se nezdařilo</td>
+            </tr>
+            <tr>
+                <td><button class="restart_button" onclick="restart()">Restartovat zařízení</button></td>
             </tr>
         </table>
         <br>
@@ -335,6 +345,7 @@
                         document.getElementById("config_status").style.display = "table-cell";
                         document.getElementById("config_status").style.color = "#09c212";
                         document.getElementById("config_status").innerHTML= "Změna nastavení proběhla úspěšně";
+                        alert("Změna nastavení proběhla úspěšně, změny se projeví až po restartu zařízení");
                     }
                     else {
                         document.getElementById("config_status").style.display = "table-cell";
@@ -361,9 +372,6 @@
             }
         }
 
-        function initButton() {
-        }
-
         function login() {
             savelogin = true;
             document.getElementById("login_button").disabled = true;
@@ -372,6 +380,13 @@
                 wsend("login",inputpass);
                 document.getElementById("status").style.display = "none";
             }
+        }
+
+        function restart() {
+            let jsnout = new Object();
+            jsnout["reqpass"] = inputpass;
+            wsend("restart",jsnout);
+            alert("Zařízení bude restartováno");
         }
 
         function getCookie(cname) {

@@ -57,7 +57,7 @@
             margin: 0 auto;
         }
 
-        .button {
+        .main button {
             padding: 15px 50px;
             font-size: 30px;
             text-align: center;
@@ -69,8 +69,8 @@
             user-select: none;
         }
 
-        .button:active {
-            background-color: #fa0f0f;
+        .main button:active {
+            background-color: #3e8e41;
             transform: translateY(2px);
         }
 
@@ -80,20 +80,91 @@
             font-weight: bold;
         }
 
-        .slider {
+        .slidecontainer input[type=range] {
             appearance: none;
             width: 90%;
             height: 20px;
             background-color: #7b7878;
         }
 
-        .slider::-webkit-slider-thumb {
+        .slidecontainer input[type=range]::-webkit-slider-thumb {
             appearance: none;
             appearance: none;
             width: 25px;
             height: 25px; 
             background: #04AA6D;
             cursor: pointer;
+        }
+
+        .slidecontainer label {
+            text-align: left;
+            padding-left: 5%;
+            display: block;
+            font-size: 20px;
+        }
+
+        .slidecontainer .speed {
+            direction: rtl
+        }
+
+        .navmenu ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #2a3fc9;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .navmenu li {
+            float: left;
+            width: 50%;
+        }
+
+        .navmenu button {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+        }
+
+        .navmenu button:active:not(.active) {
+            background-color: #00a2ff;
+        }
+
+        .a_select {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 80%;
+            font-size: 1.15rem;
+            padding: 0.675em 6em 0.675em 1em;
+            background-color: #fff;
+            border: 1px solid #caced1;
+            border-radius: 0.25rem;
+            margin-bottom: 10px;
+            color: #000;
+            cursor: pointer;
+        }
+
+        br {
+            display: block;
+            content: "";
+            margin-top: 50px;
+        }
+
+        .animate {
+            display: none;
+        }
+
+        .static {
+            display: block;
         }
     </style>
 </head>
@@ -103,24 +174,123 @@
         <img src="logo" alt="Logo" class="logo">
         <h1>Jiří Jež DMP</h1>
     </div>
-    <div class="main">
-        <div class="card">
-            <h2>Ovládání LED na GPIO2</h2>
-            <p><button id="button" class="button">Test LED</button></p>
-            <p class="state">Současný stav: <span id="state">Test</span></p>
-            <div class="slidecontainer">
-                <input type="range" min="1" max="100" value="50" class="slider" id="range1">
+    <div class="static" id="static">
+        <div class="main">
+            <div class="card">
+                <h2>Ovládání 1. části světlometu</h2>
+                <p class="state">Současný stav: <span id="state1">Nenastaveno</span></p>
+                <div class="slidecontainer">
+                    <label class="rangelabel" for="range1">Svítivost:</label>
+                    <input type="range" min="1" max="250" value="125" id="srange1">
+                </div>
+                <p><button onclick="static_button(1)">Odeslat</button></p>
             </div>
-            <p><button id="buttonsend" class="button">Odeslat</button></p>
+        </div>
+        <div class="main">
+            <div class="card">
+                <h2>Ovládání 2. části světlometu</h2>
+                <p class="state">Současný stav: <span id="state2">Nenastaveno</span></p>
+                <div class="slidecontainer">
+                    <label class="rangelabel" for="range2">Svítivost:</label>
+                    <input type="range" min="1" max="250" value="125" id="srange2">
+                </div>
+                <p><button onclick="static_button(2)">Odeslat</button></p>
+            </div>
+        </div>
+        <div class="main">
+            <div class="card">
+                <h2>Ovládání 3. části světlometu</h2>
+                <p class="state">Současný stav: <span id="state3">Nenastaveno</span></p>
+                <div class="slidecontainer">
+                    <label class="rangelabel" for="range3">Svítivost:</label>
+                    <input type="range" min="1" max="250" value="125" id="srange3">
+                </div>
+                <p><button onclick="static_button(3)">Odeslat</button></p>
+            </div>
         </div>
     </div>
+    <div class="animate" id="animate">
+        <div class="main">
+            <div class="card">
+                <h2>Ovládání 1. části světlometu</h2>
+                <p class="state">Současný stav: <span id="a_state1">Nenastaveno</span></p>
+                <select class="a_select" id="a_select1">
+                    <option>Slide right</option>
+                    <option>Slide left</option>
+                    <option>Slide2 right</option>
+                    <option>Slide2 left</option>
+                    <option>Bouncing ball</option>
+                    <option>Breathe</option>
+                </select>
+                <div class="slidecontainer">
+                    <label class="rangelabel" for="a_range11">Svítivost:</label>
+                    <input type="range" min="1" max="250" value="125" id="a_range11">
+                </div>
+                <div class="slidecontainer">
+                    <label class="rangelabel" for="a_range12">Rychlost:</label>
+                    <input class="speed" type="range" min="200" max="10200" value="5200" id="a_range12">
+                </div>
+                <p><button onclick="anim_button(1)">Odeslat</button></p>
+            </div>
+        </div>
+        <div class="main">
+            <div class="card">
+                <h2>Ovládání 2. části světlometu</h2>
+                <p class="state">Současný stav: <span id="a_state2">Nenastaveno</span></p>
+                <select class="a_select" id="a_select2">
+                    <option>Slide right</option>
+                    <option>Slide left</option>
+                    <option>Slide2 right</option>
+                    <option>Slide2 left</option>
+                    <option>Bouncing ball</option>
+                    <option>Breathe</option>
+                </select>
+                <div class="slidecontainer">
+                    <label class="rangelabel" for="a_range21">Svítivost:</label>
+                    <input type="range" min="1" max="250" value="125" id="a_range21">
+                </div>
+                <div class="slidecontainer">
+                    <label class="rangelabel" for="a_range22">Rychlost:</label>
+                    <input class="speed" type="range" min="200" max="10200" value="5200" id="a_range22">
+                </div>
+                <p><button onclick="anim_button(2)">Odeslat</button></p>
+            </div>
+        </div>
+        <div class="main">
+            <div class="card">
+                <h2>Ovládání 3. části světlometu</h2>
+                <p class="state">Současný stav: <span id="a_state3">Nenastaveno</span></p>
+                <select class="a_select" id="a_select3">
+                    <option>Slide right</option>
+                    <option>Slide left</option>
+                    <option>Slide2 right</option>
+                    <option>Slide2 left</option>
+                    <option>Bouncing ball</option>
+                    <option>Breathe</option>
+                </select>
+                <div class="slidecontainer">
+                    <label class="rangelabel" for="a_range31">Svítivost:</label>
+                    <input type="range" min="1" max="250" value="125" id="a_range31">
+                </div>
+                <div class="slidecontainer">
+                    <label class="rangelabel" for="a_range32">Rychlost:</label>
+                    <input class="speed" type="range" min="200" max="10200" value="5200" id="a_range32">
+                </div>
+                <p><button onclick="anim_button(3)">Odeslat</button></p>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="navmenu">
+        <ul>
+            <li><button id="nav1" onclick="navmenu(1)">Statické svícení</button></li>
+            <li><button id="nav2" onclick="navmenu(2)">Animace</button></li>
+        </ul>
     </div>
     <script>
         var gateway = `ws://${window.location.hostname}/ws`;
         var websocket;
-        var vstate;
-        var text;
-        var slider = document.getElementById("range1");
+        navmenu(1);
         window.addEventListener("load", onLoad);
         function initWebSocket() {
             console.log("Trying to open a WebSocket connection...");
@@ -131,6 +301,9 @@
         }
         function onOpen(event) {
             console.log("Connection opened");
+            websocket.send(JSON.stringify({
+                "type": "status_sync"
+            }));
         }
         function onClose(event) {
             console.log("Connection closed");
@@ -139,65 +312,57 @@
         function onMessage(event) {
             console.log(event.data);
             rmsg = JSON.parse(event.data);
-            if (rmsg.type == "button") {
-                if (rmsg.id == 1) {
-                    if (vstate =="ON") {
-                        vstate = "OFF";
-                        text = "Zapnout LED";
-                    }
-                    else {
-                        vstate = "ON";
-                        text = "Vypnout LED";
-                    }
-                }
-                else {
-                    vstate = "OFF";
-                    text = "Zapnout LED"; 
-                }
-                document.getElementById("state").innerHTML = vstate;
-                document.getElementById("button").innerText = text;
-            }
             if (rmsg.type == "svalue") {
-                if (rmsg.id == 1) {
-                    slider.value = rmsg.value
-                }
+                document.getElementById("srange"+rmsg.id+"").value = rmsg.value;
+                document.getElementById("state"+rmsg.id+"").innerHTML = "Statické svícení";
+                document.getElementById("a_state"+rmsg.id+"").innerHTML = "Statické svícení";
+            }
+            if (rmsg.type == "animate") {
+                document.getElementById("a_range"+rmsg.id+"1").value = rmsg.value.brightness;
+                document.getElementById("a_range"+rmsg.id+"2").value = rmsg.value.speed;
+                document.getElementById("state"+rmsg.id+"").innerHTML = "Spuštěna animace";
+                document.getElementById("a_state"+rmsg.id+"").innerHTML = "Spuštěna animace";
             }
         }
         function onLoad(event) {
-            var startstate = %d;
-            if (startstate == 1) {
-                vstate = "ON";
-                text = "Vypnout LED";
-            }
-            else {
-                vstate = "OFF";
-                text = "Zapnout LED";
-            }
-            document.getElementById("state").innerHTML = vstate;
-            document.getElementById("button").innerText = text;
             initWebSocket();
-            initButton();
         }
-        function initButton() {
-            document.getElementById("button").addEventListener("click", button1);
-            document.getElementById("buttonsend").addEventListener("click", buttonsendf);
+
+        function static_button(id) {
+            wsend("svalue",id,Number(document.getElementById("srange"+id+"").value));
         }
+
+        function anim_button(id) {
+            let params = new Object();
+            params["brightness"] = Number(document.getElementById("a_range"+id+"1").value);
+            params["speed"] = Number(document.getElementById("a_range"+id+"2").value);
+            params["type"] = Number(document.getElementById("a_select"+id+"").selectedIndex)+1;
+            wsend("animate",id,params);
+        }
+
         function wsend(type,id,value=1) {
             websocket.send(JSON.stringify({
                 "type": type,
                 "id": Number(id),
-                "value": Number(value)
+                "value": value
             }));
         }
 
-        function button1() {
-            wsend("button",1);
+        function navmenu(id) {
+            if (id == 1)    {
+                document.getElementById("nav1").style.backgroundColor = "#100e91";
+                document.getElementById("nav2").style.backgroundColor = "#2a3fc9";
+                document.getElementById("static").style.display = "block";
+                document.getElementById("animate").style.display = "none";
+            }
+            if (id == 2) {
+                document.getElementById("nav2").style.backgroundColor = "#100e91";
+                document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
+                document.getElementById("static").style.display = "none";
+                document.getElementById("animate").style.display = "block";
+            }
         }
         
-        function buttonsendf() {
-            wsend("svalue",1,slider.value);
-        }
     </script>
 </body>
-
 </html>
