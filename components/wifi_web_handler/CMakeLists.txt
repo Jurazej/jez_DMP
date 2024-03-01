@@ -1,0 +1,16 @@
+idf_component_register(
+	SRCS
+		"wifi_web_handler.c"
+	INCLUDE_DIRS 
+		"include"
+	REQUIRES
+		esp_netif
+		nvs_flash
+		lwip
+		esp_wifi
+		esp_event
+		mdns
+		file_handler
+		ws_handler
+		esp_http_server
+)

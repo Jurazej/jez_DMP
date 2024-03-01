@@ -1,0 +1,12 @@
+idf_component_register(
+	SRCS
+		"ws_handler.c"
+	INCLUDE_DIRS 
+		"include"
+	REQUIRES
+		json
+		file_handler
+		wifi_web_handler
+		esp_http_server
+		lwip
+)
