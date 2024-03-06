@@ -1,17 +1,17 @@
 #include <stdio.h>
-#include <lwip/sockets.h>
-#include <lwip/sys.h>
-#include <lwip/api.h>
-#include <lwip/netdb.h>
+#include <string.h>
 #include "esp_log.h"
 #include "esp_http_server.h"
 #include "cjson.h"
+#include "esp_system.h"
 
 #include "ws_handler.h"
 #include "file_handler.h"
 #include "wifi_web_handler.h"
 
 static const char *TAG = "WS_handler";
+
+animlight_t animlight[3];
 
 static void ws_async_send(void *arg)
 {
@@ -23,7 +23,6 @@ static void ws_async_send(void *arg)
 
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
     ws_pkt.payload = (uint8_t *)resp_arg->json_in;	//Nastavení atributu přenášené zprávy na data
-    //ws_pkt.payload = (uint8_t *)data;			//Nastavení atributu přenášené zprávy na data
     ws_pkt.len = strlen(resp_arg->json_in);					//Nastavení atributu délky podle délky bufferu
     ws_pkt.type = HTTPD_WS_TYPE_TEXT; 			//Nastavení atributu type rámce na text
 
@@ -58,19 +57,16 @@ esp_err_t trigger_async_send(httpd_req_t *req, char *json_in)
 //Funkce pro zpracování přijaté zprávy
 esp_err_t handle_ws_req(httpd_req_t *req)
 {
-
-    if (req->method == HTTP_GET) //Kontrola metody
+    if (req->method == HTTP_GET)
     {
         ESP_LOGI(TAG, "Handshake done, the new connection was opened");
         return ESP_OK;
     }
-
-    httpd_ws_frame_t ws_pkt;	//Inicializace websocket rámce
+    httpd_ws_frame_t ws_pkt;
     uint8_t *buf = NULL;
-    memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t)); //Nastavení WS rámce na nuly
+    memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
 
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
-
     esp_err_t ret = httpd_ws_recv_frame(req, &ws_pkt, 0); //Získání pouze délky WS rámce z req (max_len = 0 - zjistí pouze délku rámce)
     if (ret != ESP_OK)
     {
@@ -99,28 +95,51 @@ esp_err_t handle_ws_req(httpd_req_t *req)
         ESP_LOGI(TAG, "Got packet with message: %s", ws_pkt.payload);
     }
 
-    ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
-
     if (ws_pkt.type == HTTPD_WS_TYPE_TEXT){
     	cJSON *root = cJSON_Parse((char *)ws_pkt.payload);
     	char *json_in = cJSON_Print(root);
 
-    	char *tempjson = cJSON_GetObjectItem(root,"type")->valuestring;
-    	ESP_LOGI(TAG, "Json in: %s", tempjson);
-
     	char *typew = cJSON_GetObjectItem(root,"type")->valuestring;
 
-    	if (strcmp(typew, "svalue") == 0){
+    	if (strcmp(typew, "status_sync") == 0){
+    		cJSON *status, *anim;
+			status = cJSON_CreateObject();
+			cJSON_AddStringToObject(status, "type", typew);
+    		cJSON_AddItemToObject(status, "value", anim=cJSON_CreateObject());
+    		int anim_segs = (sizeof(animlight) / sizeof(animlight[0]));
+    		cJSON *animn[anim_segs];
+    		char i_string[3];
+    		for (int i = 0; i < anim_segs; i++) {
+    			sprintf(i_string, "%d", i+1);
+    			cJSON_AddItemToObject(anim, i_string, animn[i]=cJSON_CreateObject());
+    			cJSON_AddNumberToObject(animn[i], "type", animlight[i].type);
+    			cJSON_AddNumberToObject(animn[i], "speed", animlight[i].speed);
+    			cJSON_AddNumberToObject(animn[i], "brightness", animlight[i].brightness);
+    		}
+
+			char *statusjsonout = cJSON_Print(status);
+			ESP_LOGI(TAG, "Json out: %s", statusjsonout);
+			cJSON_Delete(status);
+			httpd_ws_frame_t ws_pkt;
+			memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
+			ws_pkt.payload = (uint8_t *)statusjsonout;
+			ws_pkt.len = strlen(statusjsonout);
+			ws_pkt.type = HTTPD_WS_TYPE_TEXT;
+			httpd_ws_send_frame_async(req->handle, httpd_req_to_sockfd(req), &ws_pkt);
+    	}
+
+    	else if (strcmp(typew, "svalue") == 0){
     		ESP_LOGI(TAG, "Type is %s", typew);
     		int idw = cJSON_GetObjectItem(root,"id")->valueint;
     		ESP_LOGI(TAG, "ID is %d", idw);
     		int valuew = cJSON_GetObjectItem(root,"value")->valueint;
     		ESP_LOGI(TAG, "Value is %d", valuew);
-
-			free(buf);
-			cJSON_Delete(root);
-			return trigger_async_send(req, json_in); //Odeslání dat na web
+			animlight[idw-1].brightness = valuew;
+			animlight[idw-1].speed = 0;
+			animlight[idw-1].type = 0;
+			trigger_async_send(req, json_in); //Odeslání dat na web
     	}
+
     	else if (strcmp(typew, "animate") == 0){
     		ESP_LOGI(TAG, "Type is %s", typew);
     		int idw = cJSON_GetObjectItem(root,"id")->valueint;
@@ -132,33 +151,17 @@ esp_err_t handle_ws_req(httpd_req_t *req)
 			ESP_LOGI(TAG, "Speed is %d", speed);
 			int type = cJSON_GetObjectItem(in_params,"type")->valueint;
 			ESP_LOGI(TAG, "Type of animation is %d", type);
+			animlight[idw-1].brightness = brightness;
+			animlight[idw-1].speed = speed;
+			animlight[idw-1].type = type;
 
-    		free(buf);
-			cJSON_Delete(root);
-			return trigger_async_send(req, json_in); //Odeslání dat na web
+			trigger_async_send(req, json_in); //Odeslání dat na web
     	}
-    	/*
-    	else if (strcmp(typew, "button") == 0){
 
-			ESP_LOGI(TAG, "Type is %s", typew);
-			int idw = cJSON_GetObjectItem(root,"id")->valueint;
-			ESP_LOGI(TAG, "ID is %d", idw);
-			if (idw==1){
-			    //Přenastavení LED
-			    led_state = !led_state;
-			    gpio_set_level(LED_PIN, led_state);
-
-				free(buf);
-				cJSON_Delete(root);
-				return trigger_async_send(req, json_in); //Odeslání dat na web
-			}
-    	}
-    	*/
 		else if (strcmp(typew, "login") == 0){
-
 			ESP_LOGI(TAG, "Type is %s", typew);
 			char *pass = cJSON_GetObjectItem(root,"value")->valuestring;
-			int loginval = 0;
+			_Bool loginval = 0;
 			if (strcmp(pass, user_config->admin_pass) == 0){
 				loginval = 1;
 			}
@@ -176,7 +179,7 @@ esp_err_t handle_ws_req(httpd_req_t *req)
 			free(buf);
 			char *loginjsonout = cJSON_Print(loginjson);
 			ESP_LOGI(TAG, "Json out: %s", loginjsonout);
-
+			cJSON_Delete(loginjson);
 			httpd_ws_frame_t ws_pkt;
 			memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
 			ws_pkt.payload = (uint8_t *)loginjsonout;	//Nastavení atributu přenášené zprávy na data
@@ -229,7 +232,7 @@ esp_err_t handle_ws_req(httpd_req_t *req)
 			free(buf);
 			char *loginjsonout = cJSON_Print(loginjson);
 			ESP_LOGI(TAG, "Json out: %s", loginjsonout);
-
+			cJSON_Delete(loginjson);
 			httpd_ws_frame_t ws_pkt;
 			memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
 			ws_pkt.payload = (uint8_t *)loginjsonout;
@@ -243,10 +246,11 @@ esp_err_t handle_ws_req(httpd_req_t *req)
 			cJSON *in_value = cJSON_GetObjectItem(root,"value");
 			char *reqpass = cJSON_GetObjectItem(in_value,"reqpass")->valuestring;
 			if (strcmp(reqpass, user_config->admin_pass) == 0){
-				ESP_LOGI(TAG, "Zarizeni se restartuje...");
+				ESP_LOGI(TAG, "Device will restart...");
 				esp_restart();
 			}
 		}
+    	free(buf);
     	cJSON_Delete(root);
     }
     return ESP_OK;

@@ -1,8 +1,6 @@
 #include <stdio.h>
+#include <string.h>
 #include <lwip/sockets.h>
-#include <lwip/sys.h>
-#include <lwip/api.h>
-#include <lwip/netdb.h>
 #include "mdns.h"
 #include "esp_netif.h"
 #include "esp_wifi.h"

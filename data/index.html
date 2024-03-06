@@ -1,6 +1,5 @@
 <!DOCTYPE HTML>
 <html>
-
 <head>
     <title>Jiri Jez DMP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
@@ -317,11 +316,27 @@
                 document.getElementById("state"+rmsg.id+"").innerHTML = "Statické svícení";
                 document.getElementById("a_state"+rmsg.id+"").innerHTML = "Statické svícení";
             }
-            if (rmsg.type == "animate") {
+            else if (rmsg.type == "animate") {
                 document.getElementById("a_range"+rmsg.id+"1").value = rmsg.value.brightness;
                 document.getElementById("a_range"+rmsg.id+"2").value = rmsg.value.speed;
                 document.getElementById("state"+rmsg.id+"").innerHTML = "Spuštěna animace";
                 document.getElementById("a_state"+rmsg.id+"").innerHTML = "Spuštěna animace";
+            }
+            else if (rmsg.type == "status_sync") {
+                for (const i in rmsg.value) {
+                    if (rmsg.value[i].speed != 0){
+                        document.getElementById("a_select"+i+"").selectedIndex = rmsg.value[i].type-1;
+                        document.getElementById("a_range"+i+"1").value = rmsg.value[i].brightness;
+                        document.getElementById("a_range"+i+"2").value = rmsg.value[i].speed;
+                        document.getElementById("state"+i+"").innerHTML = "Spuštěna animace";
+                        document.getElementById("a_state"+i+"").innerHTML = "Spuštěna animace";
+                    }
+                    else if (rmsg.value[i].brightness != 0 && rmsg.value[i].speed == 0){
+                        document.getElementById("srange"+i+"").value = rmsg.value[i].brightness;
+                        document.getElementById("state"+i+"").innerHTML = "Statické svícení";
+                        document.getElementById("a_state"+i+"").innerHTML = "Statické svícení";
+                    }
+                }
             }
         }
         function onLoad(event) {
@@ -355,14 +370,13 @@
                 document.getElementById("static").style.display = "block";
                 document.getElementById("animate").style.display = "none";
             }
-            if (id == 2) {
+            else if (id == 2) {
                 document.getElementById("nav2").style.backgroundColor = "#100e91";
                 document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
                 document.getElementById("static").style.display = "none";
                 document.getElementById("animate").style.display = "block";
             }
         }
-        
     </script>
 </body>
 </html>

@@ -9,4 +9,5 @@ idf_component_register(
 		wifi_web_handler
 		esp_http_server
 		lwip
+		esp_system
 )

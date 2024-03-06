@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "esp_log.h"
 #include "esp_spiffs.h"
@@ -230,11 +229,11 @@ int save_config(user_config_t edited_u_conf){
 	char *conf_to_save = cJSON_Print(conf_json);
 	ESP_LOGI(TAG, "Saving config: %s", conf_to_save);
     if (fwrite(conf_to_save, 1, strlen(conf_to_save), f) != strlen(conf_to_save)) {
-        ESP_LOGE(TAG, "Změněný config soubor nelze uložit");
+        ESP_LOGE(TAG, "Failed to save new config file");
         fclose(f);
         return 0;
     } else {
-        ESP_LOGI(TAG, "Změněný config soubor úspěšně uložen");
+        ESP_LOGI(TAG, "New config file was saved successfully");
         fclose(f);
         return 1;
     }
