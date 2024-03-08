@@ -46,10 +46,6 @@
             background-color: #00a2ff;
         }
 
-        .navmenu .active {
-            background-color: #100e91;
-        }
-
         .top {
             overflow: hidden;
             background-color: #2a3fc9;
@@ -96,7 +92,7 @@
 
 
         .login_form {
-            display: block;
+            display: none;
             position: fixed;
             z-index: 1;
             left: 0;
@@ -165,12 +161,15 @@
             width: 100%;
         }
 
-        .config_form th, td {
+        .config_form th, td:not(.container) {
             padding: 10px;
             text-align: left;
+            width: 50%;
+            box-sizing: border-box
         }
 
         .config_form input {
+            text-align: right;
             width: 100%; 
             font-size: 20px;
             padding: 10px; 
@@ -214,7 +213,35 @@
         .config_form .restart_button:active {
             background-color: #920c0c;
         }
-    
+
+        .config_form select {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            color: #000;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 10px; 
+            box-sizing: border-box; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+        }
+
+        .config_form h2 {
+            margin: 0px;
+            font-size: 25px;
+        }
+
+        .config_form h3 {
+            margin: 0px;
+            font-size: 20px;
+        }
+
+        .config_form input[type="checkbox"] {
+            height: 25px;
+            width: 25px;
+        }
+       
     </style>
 </head>
 
@@ -239,58 +266,107 @@
         </div>
     </div>
     <div class="config_form" id="config_form">
-        <h1>Nastavení</h1>
-        <table>
-            <tr>
-                <th></th>
-                <th>Aktuální hodnota</th>
-                <th>Nová hodnota</th>
-            </tr>
-            <tr>
-                <td>WiFi SSID</td>
-                <td id="cv_ssid">NA</td>
-                <td><input type="text" onblur="checkLength(this)" id="config_ssid" minlength="1" maxlength="30"></td>
-            </tr>
-            <tr>
-                <td>WiFi heslo</td>
-                <td id="cv_wifipass">NA</td>
-                <td><input type="text" onblur="checkLength(this)" id="config_wifipass" minlength="8" maxlength="60"></td>
-            </tr>
-            <tr>
-                <td>Maximální počet zařízení připojených k WiFi</td>
-                <td id="cv_maxcon">NA</td>
-                <td><input type="number" onblur="checkValue(this)" id="config_maxcon" min="1" max="10"></td>
-            </tr>
-            <tr>
-                <td>mDNS</td>
-                <td id="cv_mdns">NA</td>
-                <td><input type="text" onblur="checkLength(this)" id="config_mdns" minlength="3" maxlength="16"></td>
-            </tr>
-            <tr>
-                <td>Heslo ke správě</td>
-                <td id="cv_adminpass">******</td>
-                <td><input type="text" onblur="checkLength(this)" id="config_adminpass" minlength="4" maxlength="60"></td>
-            </tr>
-            <tr>
-                <td><button onclick="change_config()">Uložit nastavení</button></td>
-                <td class="config_status" id="config_status" colspan="2">Nastavení se nezdařilo</td>
-            </tr>
-            <tr>
-                <td><button class="restart_button" onclick="restart()">Restartovat zařízení</button></td>
-            </tr>
-        </table>
-        <br>
+        <div class="settings_form" id="settings_form">
+            <h1>Nastavení</h1>
+            <table>
+                <tr>
+                    <th></th>
+                    <th>Aktuální hodnota</th>
+                    <th>Nová hodnota</th>
+                </tr>
+                <tr>
+                    <td>WiFi SSID</td>
+                    <td id="cv_ssid">NA</td>
+                    <td><input type="text" onblur="checkLength(this)" id="config_ssid" minlength="1" maxlength="30"></td>
+                </tr>
+                <tr>
+                    <td>WiFi heslo</td>
+                    <td id="cv_wifipass">NA</td>
+                    <td><input type="text" onblur="checkLength(this)" id="config_wifipass" minlength="8" maxlength="60"></td>
+                </tr>
+                <tr>
+                    <td>Maximální počet zařízení připojených k WiFi</td>
+                    <td id="cv_maxcon">NA</td>
+                    <td><input type="number" onblur="checkValue(this)" id="config_maxcon" min="1" max="10"></td>
+                </tr>
+                <tr>
+                    <td>mDNS</td>
+                    <td id="cv_mdns">NA</td>
+                    <td><input type="text" onblur="checkLength(this)" id="config_mdns" minlength="3" maxlength="16"></td>
+                </tr>
+                <tr>
+                    <td>Heslo ke správě</td>
+                    <td id="cv_adminpass">******</td>
+                    <td><input type="text" onblur="checkLength(this)" id="config_adminpass" minlength="4" maxlength="60"></td>
+                </tr>
+                <tr>
+                    <td><button onclick="change_config()">Uložit nastavení</button></td>
+                    <td class="config_status" id="config_status" colspan="2">Nastavení se nezdařilo</td>
+                </tr>
+                <tr>
+                    <td><button class="restart_button" onclick="restart()">Restartovat zařízení</button></td>
+                </tr>
+            </table>
+            <br>
+        </div>
+        <div class="param_form" id="param_form">
+            <h1>Parametritace světlometu</h1>
+            <table>
+                <tr>
+                    <td>Počet světlometů</td>
+                    <td><select class="select" onchange="generate_svetlomety(this)">
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        <option>4</option>
+                    </select></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><h2>1. světlomet:</h2></td>
+                </tr>
+                <tr>
+                    <td>Invertované</td>
+                    <td><input type="checkbox" id="par_inv_1"></td>
+                </tr>
+                <tr>
+                    <td>Počet driverů</td>
+                    <td><input type="number" id="par_nod_1" onblur="checkValue(this)" onchange="generate_drivers(this, 1)" min="1" max="16"></td>
+                </tr>
+                <tr> 
+                    <td id="driver_container_1" class="container" colspan="2"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><h3>Rozdělení 1. světlometu na části:</h3></td>
+                </tr>
+                <tr>
+                    <td>Počet částí:</td>
+                    <td><input type="number" id="par_nop_1" onblur="checkValue(this)" onchange="generate_parts(this, 1)" min="1" max="5"></td>
+                </tr>
+                <tr> 
+                    <td id="part_container_1" class="container" colspan="2"></td>
+                </tr>
+                <tr>
+                    <td><button onclick="change_config()">Uložit nastavení</button></td>
+                    <td class="config_status" id="config_status" colspan="2">Nastavení se nezdařilo</td>
+                </tr>
+                <tr>
+                    <td><button class="restart_button" onclick="restart()">Restartovat zařízení</button></td>
+                </tr>
+            </table>
+            <br>
+        </div>
     </div>
     <div class="navmenu">
         <ul>
-            <li><button class="active">Nastavení</button></li>
-            <li><button>Světlo</button></li>
-            <li><button>Stav</button></li>
+            <li><button id="nav1" onclick="navmenu(1)">Nastavení</button></li>
+            <li><button id="nav2" onclick="navmenu(2)">Parametrizace</button></li>
+            <li><button id="nav3" onclick="navmenu(3)">Test světlometu</button></li>
         </ul>
     </div>
     <script>
         var gateway = `ws://${window.location.hostname}/ws`;
         var websocket;
+        navmenu(2);
         var savelogin = false;
         var inputpass;
         window.addEventListener("load", onLoad);
@@ -434,15 +510,122 @@
         }
 
         function checkLength(inp) {
-            if ((inp.value.length > inp.maxLength) || (inp.value.length < inp.minLength)) {
-                inp.value = "";
-                alert("Délka musí být od "+inp.minLength+" do "+inp.maxLength+" znaků");
+            if (inp.value != "") {
+                if ((inp.value.length > inp.maxLength) || (inp.value.length < inp.minLength)) {
+                    inp.value = "";
+                    alert("Délka musí být od "+inp.minLength+" do "+inp.maxLength+" znaků");
+                }
             }
         }
         function checkValue(inp) {
-            if ((Number(inp.value) > Number(inp.max)) || (Number(inp.value) < Number(inp.min))) {
-                inp.value = "";
-                alert("Hondota musí být od "+inp.min+" do "+inp.max);
+            if (inp.value != "") {
+                if ((Number(inp.value) > Number(inp.max)) || (Number(inp.value) < Number(inp.min))) {
+                    inp.value = "";
+                    alert("Hondota musí být od "+inp.min+" do "+inp.max);
+                }
+            }
+        }
+
+        function validate_mask_input(input) {
+            const inputValue = input.value;
+            const pattern = /^[01]+$/;
+            const maxLength = input.getAttribute("wanted_length");
+            if (!pattern.test(inputValue) || inputValue.length > maxLength) {
+                input.value = inputValue.replace(/[^01]/g, '').slice(0, maxLength);
+            }
+        }
+        
+        function generate_drivers(input, number) {
+            const driver_count = input.value;
+            const driver_container = document.getElementById(`driver_container_${number}`);
+            driver_container.innerHTML = "";
+            for (let i = 1; i <= driver_count; i++) {
+                const driver_table = document.createElement('table');
+                driver_table.innerHTML = `
+                <tr>
+                        <td>Adresa ${i}. driveru</td>
+                        <td><input type="number" id="par_adrod_${number}_${i}" onblur="checkValue(this)" min="1" max="31"></td>
+                </tr>
+                <tr>
+                        <td>Maska ${i}. driveru</td>
+                        <td><input type="text" id="par_maskod_${number}_${i}" oninput="validate_mask_input(this)" wanted_length="16"></td>
+                
+                </tr>
+                `;
+                driver_container.appendChild(driver_table);
+            }
+        }
+
+        function generate_parts(input, number) {
+            const part_count = input.value;
+            const part_container = document.getElementById(`part_container_${number}`);
+            part_container.innerHTML = "";
+
+            const options = ["Tail", "Turn", "Brake", "Reverse", "Rear fog"];
+
+            for (let i = 1; i <= part_count; i++) {
+                const part_table = document.createElement('table');
+                part_table.innerHTML = `
+                <tr>
+                    <td>Typ ${i}. části světlometu</td>
+                    <td>
+                    <select class="part_select" id="pat_top_${number}_${i}" onchange="update_selects(this)">
+                        ${options.map((option, index) => `<option value="${option}" ${index === i - 1 ? 'selected' : ''}>${option}</option>`).join('')}
+                    </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Počátek ${i}. části světlometu</td>
+                    <td><input type="number" onblur="checkValue(this)" id="par_sop_${number}_${i}" min="0" max="128"></td>
+                </tr>
+                <tr>
+                    <td>Délka ${i}. části světlometu</td>
+                    <td><input type="number" onblur="checkValue(this)" id="par_lop_${number}_${i}" min="1" max="128"></td>
+                </tr>
+                `;
+                part_container.appendChild(part_table);
+            }
+            const selects = document.querySelectorAll('.part_select');
+            selects.forEach(select => update_selects(select));
+        }
+
+        function update_selects(input) {
+            const selects = document.querySelectorAll('.part_select');
+            selects.forEach(select => {
+                const selectedOptions = [...selects].filter(s => s !== select).map(s => s.value);
+                select.querySelectorAll('option').forEach(option => {
+                option.disabled = selectedOptions.includes(option.value);
+                });
+                if (select.value === '' || selectedOptions.includes(select.value)) {
+                    const enabledOptions = select.querySelectorAll('option:not([disabled])');
+                if (enabledOptions.length > 0) {
+                    enabledOptions[0].selected = true;
+                }
+                }
+            });
+        }
+
+        function navmenu(id) {
+            if (id == 1)    {
+                document.getElementById("nav1").style.backgroundColor = "#100e91";
+                document.getElementById("nav2").style.backgroundColor = "#2a3fc9";
+                document.getElementById("nav3").style.backgroundColor = "#2a3fc9";
+                document.getElementById("settings_form").style.display = "block";
+                document.getElementById("param_form").style.display = "none";
+            }
+            else if (id == 2) {
+                document.getElementById("nav2").style.backgroundColor = "#100e91";
+                document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
+                document.getElementById("nav3").style.backgroundColor = "#2a3fc9";
+                document.getElementById("settings_form").style.display = "none";
+                document.getElementById("param_form").style.display = "block";
+            }
+            else if (id == 3) {
+                document.getElementById("nav3").style.backgroundColor = "#100e91";
+                document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
+                document.getElementById("nav2").style.backgroundColor = "#2a3fc9";
+                //document.getElementById("static").style.display = "none";
+                //document.getElementById("animate").style.display = "block";
             }
         }
     </script>
