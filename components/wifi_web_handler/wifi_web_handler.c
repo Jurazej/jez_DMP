@@ -21,8 +21,7 @@ httpd_handle_t server;
 void wifi_init_softap(void) {
     //Inicializace NVS (Non-Volatile Storage) - potřebné pro konfiguraci WiFi
     esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
@@ -42,10 +41,10 @@ void wifi_init_softap(void) {
         },
     };
     int i;
-    for (i = 0; i < (strlen(user_config->ssid)+1); i++){
+    for (i = 0; i < (strlen(user_config->ssid)+1); i++) {
     	wifi_config.ap.ssid[i] = *((user_config->ssid)+i);
     }
-    for (i = 0; i < (strlen(user_config->wifi_pass)+1); i++){
+    for (i = 0; i < (strlen(user_config->wifi_pass)+1); i++) {
     	wifi_config.ap.password[i] = *((user_config->wifi_pass)+i);
     }
 
@@ -68,12 +67,10 @@ void start_mdns_service(void)
 
 esp_err_t get_index_handler(httpd_req_t *req)
 {
-    if (httpd_resp_send(req, loaded_files->index_html, HTTPD_RESP_USE_STRLEN) != ESP_OK)
-    {
+    if (httpd_resp_send(req, loaded_files->index_html, HTTPD_RESP_USE_STRLEN) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send index.html");
         return ESP_FAIL;
     }
-
     return ESP_OK;
 }
 
@@ -83,23 +80,19 @@ esp_err_t get_logo_handler(httpd_req_t *req)
     httpd_resp_set_type(req, "image/svg+xml");
 
     //Odeslání obsahu logo.svg jako odpovědi na GET požadavek
-    if (httpd_resp_send(req, loaded_files->logo_svg, HTTPD_RESP_USE_STRLEN) != ESP_OK)
-    {
+    if (httpd_resp_send(req, loaded_files->logo_svg, HTTPD_RESP_USE_STRLEN) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send logo.svg");
         return ESP_FAIL;
     }
-
     return ESP_OK;
 }
 
 esp_err_t get_admin_handler(httpd_req_t *req)
 {
-    if (httpd_resp_send(req, loaded_files->admin_html, HTTPD_RESP_USE_STRLEN) != ESP_OK)
-    {
+    if (httpd_resp_send(req, loaded_files->admin_html, HTTPD_RESP_USE_STRLEN) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send admin.html");
         return ESP_FAIL;
     }
-
     return ESP_OK;
 }
 
@@ -133,13 +126,11 @@ httpd_handle_t setup_server(void)
 		.handler = get_logo_handler,
 		.user_ctx = NULL};
 
-    if (httpd_start(&server, &config) == ESP_OK)
-    {
+    if (httpd_start(&server, &config) == ESP_OK) {
         httpd_register_uri_handler(server, &uri_get);
         httpd_register_uri_handler(server, &ws);
         httpd_register_uri_handler(server, &uri_logo_get);
         httpd_register_uri_handler(server, &uri_admin_get);
     }
-
     return server;
 }

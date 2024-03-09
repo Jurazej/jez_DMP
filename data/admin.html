@@ -11,7 +11,7 @@
         }
 
         body {
-             margin: 0;
+            margin: 0;
         }
 
         .navmenu ul {
@@ -34,12 +34,18 @@
             display: block;
             color: white;
             text-align: center;
-            padding: 14px 16px;
+            padding: 14px 0px;
             background: none;
             border: none;
             cursor: pointer;
             width: 100%;
             font-size: 18px;
+        }
+
+        @media (max-width: 767px) {
+            .navmenu button {
+                font-size: 16px;
+            }
         }
 
         .navmenu button:hover:not(.active) {
@@ -51,14 +57,13 @@
             background-color: #2a3fc9;
             width: auto;
         }
-        
+
         .top h1 {
             margin: 0;
             font-size: 30px;
             color: white;
             text-align: right;
-            padding-left: 10px;
-            padding: 21px;
+            padding: 21px 21px 21px 10px;
         }
 
         .top .logo {
@@ -67,32 +72,28 @@
             float: left;
         }
 
-        .login_form h2 {
+        .loginForm h2,
+        .loginStatus {
             font-size: 26px;
             font-weight: bold;
             color: #2a3fc9;
         }
 
-        .login_status {
-            font-size: 26px;
-            font-weight: bold;
-            color: #2a3fc9;
-            margin-bottom: 0px;
+        .loginStatus {
+            margin-bottom: 0;
             display: none;
         }
 
         .card {
             background-color: #F8F7F9;
             box-shadow: 2px 2px 15px 5px rgba(140, 140, 140, .5);
-            padding-top: 10px;
-            padding-bottom: 20px;
+            padding: 10px 0 20px;
             border-radius: 10px;
             margin: 0 auto;
         }
 
-
-        .login_form {
-            display: none;
+        .loginForm {
+            display: inline;
             position: fixed;
             z-index: 1;
             left: 0;
@@ -101,7 +102,8 @@
             height: 100%;
             overflow: auto;
             padding-top: 70px;
-            background-color: rgba(22, 22, 22, 0.6)
+            background-color: rgba(22, 22, 22, 0.6);
+            text-align: center;
         }
 
         .main {
@@ -110,11 +112,7 @@
             margin: 0 auto;
         }
 
-        .login_form {
-            text-align: center;
-        }
-
-        .login_form button {
+        .loginForm button {
             padding: 15px 50px;
             font-size: 30px;
             text-align: center;
@@ -126,61 +124,68 @@
             user-select: none;
         }
 
-        .login_form button:active {
+        .loginForm button:active {
             background-color: #3e8e41;
             transform: translateY(2px);
         }
 
-        .login_form input { 
-            width: 60%; 
+        .loginForm input {
+            width: 60%;
             font-size: 20px;
-            margin-bottom: 15px; 
-            padding: 10px; 
-            box-sizing: border-box; 
-            border: 1px solid #ddd; 
-            border-radius: 5px; 
-        } 
+            margin-bottom: 15px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
 
-        .login_form label { 
-            width: 100%; 
-            margin-top: 10px; 
-            margin-bottom: 5px; 
-            color: #555; 
+        .loginForm label {
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #555;
             font-weight: bold;
             font-size: 25px;
-        } 
+        }
 
-        .config_form h1 {
+        .configForm h1 {
             font-size: 2em;
             text-align: left;
             margin-left: 12px;
         }
 
-        .config_form table {
+        .configForm table {
             font-size: 18px;
             width: 100%;
         }
 
-        .config_form th, td:not(.container) {
+        .configForm th, td:not(.container) {
             padding: 10px;
             text-align: left;
+            box-sizing: border-box;
+        }
+
+        .paramForm th, td {
             width: 50%;
-            box-sizing: border-box
         }
 
-        .config_form input {
+        .settingForm th, td {
+            width: 33.33%;
+        }
+
+        .configForm input {
             text-align: right;
-            width: 100%; 
+            width: 100%;
             font-size: 20px;
-            padding: 10px; 
-            box-sizing: border-box; 
-            border: 1px solid #ddd; 
-            border-radius: 5px; 
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
 
-        .config_form button {
-            padding: 10px 10%;
-            margin: 10px 0px;
+        .configForm button {
+            padding: 10px 20px;
+            margin: 10px 0;
             font-size: 22px;
             outline: none;
             color: #fff;
@@ -190,54 +195,48 @@
             user-select: none;
         }
 
-        .config_form button:active {
+        .configForm button:active {
             background-color: #3e8e41;
         }
 
-        .config_form br {
+        .configForm br {
             display: block;
             content: "";
             margin-top: 50px;
         }
 
-        .config_form .config_status {
-            font-weight: bold;
-            font-size: 26px;
-            display: none;
-        }
-
-        .config_form .restart_button {
+        .configForm .restartButton {
             background-color: #f5140c;
         }
-        
-        .config_form .restart_button:active {
+
+        .configForm .restartButton:active {
             background-color: #920c0c;
         }
 
-        .config_form select {
+        .configForm select {
             appearance: none;
             -webkit-appearance: none;
             width: 100%;
             color: #000;
             cursor: pointer;
             font-size: 20px;
-            padding: 10px; 
-            box-sizing: border-box; 
-            border: 1px solid #ddd; 
-            border-radius: 5px; 
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
 
-        .config_form h2 {
-            margin: 0px;
+        .configForm h2 {
             font-size: 25px;
+            margin: 0;
         }
 
-        .config_form h3 {
-            margin: 0px;
+        .configForm h3 {
             font-size: 20px;
+            margin: 0;
         }
 
-        .config_form input[type="checkbox"] {
+        .configForm input[type="checkbox"] {
             height: 25px;
             width: 25px;
         }
@@ -250,7 +249,7 @@
         <img src="logo" alt="Logo" class="logo">
         <h1>Jiří Jež DMP</h1>
     </div>
-    <div class="login_form" id="login_form">
+    <div class="loginForm" id="loginForm">
         <div class="main">
             <div class="card">
                 <h2>Přihlášení do správy systému</h2>      
@@ -260,13 +259,13 @@
                     <input type="password"
                             id="password" 
                             placeholder="Zadejte heslo" required> 
-                    <button class="login_button" id="login_button" onclick="login()">Potvrdit</button> 
-                <h3 class="login_status" id="status">Pokus o automatické přihlášení</h3>
+                    <button class="loginButton" id="loginButton" onclick="login()">Potvrdit</button> 
+                <h3 class="loginStatus" id="status">Pokus o automatické přihlášení</h3>
             </div>
         </div>
     </div>
-    <div class="config_form" id="config_form">
-        <div class="settings_form" id="settings_form">
+    <div class="configForm" id="configForm">
+        <div class="settingsForm" id="settingsForm">
             <h1>Nastavení</h1>
             <table>
                 <tr>
@@ -276,45 +275,44 @@
                 </tr>
                 <tr>
                     <td>WiFi SSID</td>
-                    <td id="cv_ssid">NA</td>
-                    <td><input type="text" onblur="checkLength(this)" id="config_ssid" minlength="1" maxlength="30"></td>
+                    <td id="cvSsid">NA</td>
+                    <td><input type="text" onblur="checkLength(this)" id="configSsid" minlength="1" maxlength="30"></td>
                 </tr>
                 <tr>
                     <td>WiFi heslo</td>
-                    <td id="cv_wifipass">NA</td>
-                    <td><input type="text" onblur="checkLength(this)" id="config_wifipass" minlength="8" maxlength="60"></td>
+                    <td id="cvWifipass">NA</td>
+                    <td><input type="text" onblur="checkLength(this)" id="configWifipass" minlength="8" maxlength="60"></td>
                 </tr>
                 <tr>
                     <td>Maximální počet zařízení připojených k WiFi</td>
-                    <td id="cv_maxcon">NA</td>
-                    <td><input type="number" onblur="checkValue(this)" id="config_maxcon" min="1" max="10"></td>
+                    <td id="cvMaxcon">NA</td>
+                    <td><input type="number" onblur="checkValue(this)" id="configMaxcon" min="1" max="10"></td>
                 </tr>
                 <tr>
                     <td>mDNS</td>
-                    <td id="cv_mdns">NA</td>
-                    <td><input type="text" onblur="checkLength(this)" id="config_mdns" minlength="3" maxlength="16"></td>
+                    <td id="cvMdns">NA</td>
+                    <td><input type="text" onblur="checkLength(this)" id="configMdns" minlength="3" maxlength="16"></td>
                 </tr>
                 <tr>
                     <td>Heslo ke správě</td>
-                    <td id="cv_adminpass">******</td>
-                    <td><input type="text" onblur="checkLength(this)" id="config_adminpass" minlength="4" maxlength="60"></td>
+                    <td id="cvAdminpass">******</td>
+                    <td><input type="text" onblur="checkLength(this)" id="configAdminpass" minlength="4" maxlength="60"></td>
                 </tr>
                 <tr>
-                    <td><button onclick="change_config()">Uložit nastavení</button></td>
-                    <td class="config_status" id="config_status" colspan="2">Nastavení se nezdařilo</td>
+                    <td colspan="3"><button onclick="changeConfig()">Uložit nastavení</button></td>
                 </tr>
                 <tr>
-                    <td><button class="restart_button" onclick="restart()">Restartovat zařízení</button></td>
+                    <td colspan="3"><button class="restartButton" onclick="restart()">Restartovat zařízení</button></td>
                 </tr>
             </table>
             <br>
         </div>
-        <div class="param_form" id="param_form">
+        <div class="paramForm" id="paramForm">
             <h1>Parametritace světlometu</h1>
             <table>
                 <tr>
                     <td>Počet světlometů</td>
-                    <td><select class="select" onchange="generate_svetlomety(this)">
+                    <td><select class="select" onchange="generateLights(this)">
                         <option>1</option>
                         <option>2</option>
                         <option>3</option>
@@ -326,31 +324,33 @@
                 </tr>
                 <tr>
                     <td>Invertované</td>
-                    <td><input type="checkbox" id="par_inv_1"></td>
+                    <td><input type="checkbox" id="parInv1"></td>
                 </tr>
                 <tr>
                     <td>Počet driverů</td>
-                    <td><input type="number" id="par_nod_1" onblur="checkValue(this)" onchange="generate_drivers(this, 1)" min="1" max="16"></td>
+                    <td><input type="number" id="parNod1" onblur="checkValue(this)" onchange="generateDrivers(this, 1)" min="1" max="16"></td>
                 </tr>
                 <tr> 
-                    <td id="driver_container_1" class="container" colspan="2"></td>
+                    <td id="driverContainer1" class="container" colspan="2"></td>
                 </tr>
                 <tr>
                     <td colspan="2"><h3>Rozdělení 1. světlometu na části:</h3></td>
                 </tr>
                 <tr>
                     <td>Počet částí:</td>
-                    <td><input type="number" id="par_nop_1" onblur="checkValue(this)" onchange="generate_parts(this, 1)" min="1" max="5"></td>
+                    <td><input type="number" id="parNop1" onblur="checkValue(this)" onchange="generateParts(this, 1)" min="1" max="5"></td>
                 </tr>
                 <tr> 
-                    <td id="part_container_1" class="container" colspan="2"></td>
+                    <td id="partContainer1" class="container" colspan="2"></td>
+                </tr>
+                <tr> 
+                    <td id="lightContainer" class="container" colspan="2"></td>
                 </tr>
                 <tr>
-                    <td><button onclick="change_config()">Uložit nastavení</button></td>
-                    <td class="config_status" id="config_status" colspan="2">Nastavení se nezdařilo</td>
+                    <td colspan="2"><button onclick="collectParamFormData()">Uložit nastavení</button></td>
                 </tr>
                 <tr>
-                    <td><button class="restart_button" onclick="restart()">Restartovat zařízení</button></td>
+                    <td colspan="2"><button class="restartButton" onclick="restart()">Restartovat zařízení</button></td>
                 </tr>
             </table>
             <br>
@@ -364,11 +364,11 @@
         </ul>
     </div>
     <script>
-        var gateway = `ws://${window.location.hostname}/ws`;
-        var websocket;
+        const gateway = `ws://${window.location.hostname}/ws`;
+        let websocket;
         navmenu(2);
-        var savelogin = false;
-        var inputpass;
+        let savelogin = false;
+        let inputpass;
         window.addEventListener("load", onLoad);
         function initWebSocket() {
             console.log("Trying to open a WebSocket connection...");
@@ -390,21 +390,21 @@
         }
         function onMessage(event) {
             console.log(event.data);
-            rmsg = JSON.parse(event.data);
+            const rmsg = JSON.parse(event.data);
             if (rmsg.type == "login") {
-                if (rmsg.value == 1) {
+                if (rmsg.login_status == true) {
                     if (savelogin == true) {
                         document.cookie = "storedpass=" + inputpass;
                         document.getElementById("status").style.color = "#09c212";
                         document.getElementById("status").innerHTML= "Přihlášení proběhlo úspěšně";
                         document.getElementById("status").style.display = "block";
                     }
-                    document.getElementById("cv_ssid").innerHTML = rmsg.currentconfig.ssid;
-                    document.getElementById("cv_wifipass").innerHTML = rmsg.currentconfig.wifi_pass;
-                    document.getElementById("cv_mdns").innerHTML = rmsg.currentconfig.mdns;
-                    document.getElementById("cv_maxcon").innerHTML = rmsg.currentconfig.maxcon;
+                    document.getElementById("cvSsid").innerHTML = rmsg.currentconfig.ssid;
+                    document.getElementById("cvWifipass").innerHTML = rmsg.currentconfig.wifi_pass;
+                    document.getElementById("cvMdns").innerHTML = rmsg.currentconfig.mdns;
+                    document.getElementById("cvMaxcon").innerHTML = rmsg.currentconfig.maxcon;
                     setTimeout(function() {
-                        document.getElementById("login_form").style.display = "none";
+                        document.getElementById("loginForm").style.display = "none";
                     }, 1000);
 
                 }
@@ -412,27 +412,32 @@
                     document.getElementById("status").style.display = "block";
                     document.getElementById("status").style.color = "#e01616";
                     document.getElementById("status").innerHTML= "Přihlášení se nezdařilo";
-                    document.getElementById("login_button").disabled = false;
+                    document.getElementById("loginButton").disabled = false;
                 }
             }
             if (rmsg.type == "config_change_status") {
-                if (rmsg.value == 1) {  
+                if (rmsg.login_status == true) {
                     if (rmsg.change_success == 1) {
-                        document.getElementById("config_status").style.display = "table-cell";
-                        document.getElementById("config_status").style.color = "#09c212";
-                        document.getElementById("config_status").innerHTML= "Změna nastavení proběhla úspěšně";
-                        alert("Změna nastavení proběhla úspěšně, změny se projeví až po restartu zařízení");
+                        alert("Změna nastavení proběhla ÚSPĚŠNĚ, změny se projeví AŽ PO RESTARTU zařízení");
                     }
                     else {
-                        document.getElementById("config_status").style.display = "table-cell";
-                        document.getElementById("config_status").style.color = "#e01616";
-                        document.getElementById("config_status").innerHTML= "Změna nastavení se nezdařila";
-                    }
-                }   
+                        alert("Změna nastavení se NEZDAŘILA");
+                    }   
+                }
             }
+            if (rmsg.type == "param_change_status") {
+                if (rmsg.login_status == true) {  
+                    if (rmsg.change_success == 1) {
+                        alert("Parametrizace proběhla ÚSPĚŠNĚ");
+                    }
+                    else {
+                        alert("Parametrizace se NEZDAŘILA");
+                    }   
+                }
+            }        
         }
 
-        function wsend(type,value=1) {
+        function wSend(type,value=1) {
             websocket.send(JSON.stringify({
                 "type": type,
                 "value": value
@@ -443,17 +448,17 @@
             let loadedpass = getCookie("storedpass");
             if (loadedpass != "") {
                 inputpass = loadedpass;
-                wsend("login",loadedpass);
+                wSend("login",loadedpass);
                 document.getElementById("status").style.display = "block"; 
             }
         }
 
         function login() {
             savelogin = true;
-            document.getElementById("login_button").disabled = true;
+            document.getElementById("loginButton").disabled = true;
             inputpass = document.getElementById("password").value
             if (inputpass != "") {
-                wsend("login",inputpass);
+                wSend("login",inputpass);
                 document.getElementById("status").style.display = "none";
             }
         }
@@ -461,7 +466,7 @@
         function restart() {
             let jsnout = new Object();
             jsnout["reqpass"] = inputpass;
-            wsend("restart",jsnout);
+            wSend("restart",jsnout);
             alert("Zařízení bude restartováno");
         }
 
@@ -481,31 +486,31 @@
             return "";
         }
 
-        function change_config() {
-            let config_ssid = document.getElementById("config_ssid").value
-            let config_wifipass = document.getElementById("config_wifipass").value
-            let config_maxcon = document.getElementById("config_maxcon").value
-            let config_mdns = document.getElementById("config_mdns").value
-            let config_adminpass = document.getElementById("config_adminpass").value
+        function changeConfig() {
+            let configSsid = document.getElementById("configSsid").value
+            let configWifipass = document.getElementById("configWifipass").value
+            let configMaxcon = document.getElementById("configMaxcon").value
+            let configMdns = document.getElementById("configMdns").value
+            let configAdminpass = document.getElementById("configAdminpass").value
             let cfgts = new Object();
-            if (config_ssid != "" || config_wifipass != "" || config_maxcon != "" || config_mdns != "" || config_adminpass != "") {
-                if (config_ssid != "") {
-                    cfgts["ssid"] = config_ssid;
+            if (configSsid != "" || configWifipass != "" || configMaxcon != "" || configMdns != "" || configAdminpass != "") {
+                if (configSsid != "") {
+                    cfgts["ssid"] = configSsid;
                 }
-                if (config_wifipass != "") {
-                    cfgts["wifi_pass"] = config_wifipass;
+                if (configWifipass != "") {
+                    cfgts["wifi_pass"] = configWifipass;
                 }
-                if (config_maxcon != "") {
-                    cfgts["maxcon"] = Number(config_maxcon);
+                if (configMaxcon != "") {
+                    cfgts["maxcon"] = Number(configMaxcon);
                 }
-                if (config_mdns != "") {
-                    cfgts["mdns"] = config_mdns;
+                if (configMdns != "") {
+                    cfgts["mdns"] = configMdns;
                 }
-                if (config_adminpass != "") {
-                    cfgts["admin_pass"] = config_adminpass;
+                if (configAdminpass != "") {
+                    cfgts["admin_pass"] = configAdminpass;
                 }
                 cfgts["reqpass"] = inputpass;
-                wsend("config",cfgts);
+                wSend("config",cfgts);
             }
         }
 
@@ -513,7 +518,7 @@
             if (inp.value != "") {
                 if ((inp.value.length > inp.maxLength) || (inp.value.length < inp.minLength)) {
                     inp.value = "";
-                    alert("Délka musí být od "+inp.minLength+" do "+inp.maxLength+" znaků");
+                    alert(`Délka musí být od ${inp.minLength} do ${inp.maxLength} znaků`);
                 }
             }
         }
@@ -521,88 +526,156 @@
             if (inp.value != "") {
                 if ((Number(inp.value) > Number(inp.max)) || (Number(inp.value) < Number(inp.min))) {
                     inp.value = "";
-                    alert("Hondota musí být od "+inp.min+" do "+inp.max);
+                    alert(`Hondota musí být od ${inp.min} do ${inp.max}`);
                 }
             }
         }
 
-        function validate_mask_input(input) {
+        function validateMaskInput(input) {
             const inputValue = input.value;
             const pattern = /^[01]+$/;
             const maxLength = input.getAttribute("wanted_length");
             if (!pattern.test(inputValue) || inputValue.length > maxLength) {
-                input.value = inputValue.replace(/[^01]/g, '').slice(0, maxLength);
-            }
-        }
-        
-        function generate_drivers(input, number) {
-            const driver_count = input.value;
-            const driver_container = document.getElementById(`driver_container_${number}`);
-            driver_container.innerHTML = "";
-            for (let i = 1; i <= driver_count; i++) {
-                const driver_table = document.createElement('table');
-                driver_table.innerHTML = `
-                <tr>
-                        <td>Adresa ${i}. driveru</td>
-                        <td><input type="number" id="par_adrod_${number}_${i}" onblur="checkValue(this)" min="1" max="31"></td>
-                </tr>
-                <tr>
-                        <td>Maska ${i}. driveru</td>
-                        <td><input type="text" id="par_maskod_${number}_${i}" oninput="validate_mask_input(this)" wanted_length="16"></td>
-                
-                </tr>
-                `;
-                driver_container.appendChild(driver_table);
+            input.value = inputValue.replace(/[^01]/g, '').slice(0, maxLength);
             }
         }
 
-        function generate_parts(input, number) {
-            const part_count = input.value;
-            const part_container = document.getElementById(`part_container_${number}`);
-            part_container.innerHTML = "";
-
-            const options = ["Tail", "Turn", "Brake", "Reverse", "Rear fog"];
-
-            for (let i = 1; i <= part_count; i++) {
-                const part_table = document.createElement('table');
-                part_table.innerHTML = `
-                <tr>
-                    <td>Typ ${i}. části světlometu</td>
-                    <td>
-                    <select class="part_select" id="pat_top_${number}_${i}" onchange="update_selects(this)">
-                        ${options.map((option, index) => `<option value="${option}" ${index === i - 1 ? 'selected' : ''}>${option}</option>`).join('')}
-                    </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Počátek ${i}. části světlometu</td>
-                    <td><input type="number" onblur="checkValue(this)" id="par_sop_${number}_${i}" min="0" max="128"></td>
-                </tr>
-                <tr>
-                    <td>Délka ${i}. části světlometu</td>
-                    <td><input type="number" onblur="checkValue(this)" id="par_lop_${number}_${i}" min="1" max="128"></td>
-                </tr>
-                `;
-                part_container.appendChild(part_table);
+        function generateLights(input) {
+            if (Number(input.value) != 1) {
+                const lightCount = input.value;
+                const lightContainer = document.getElementById("lightContainer");
+                lightContainer.innerHTML = "";
+                for (let i = 1; i <= lightCount-1; i++) {
+                    const lightTable = document.createElement("table");
+                    const index = i+1;
+                    lightTable.innerHTML = `
+                    <tr>
+                    <td colspan="2"><h2>${index}. světlomet:</h2></td>
+                    </tr>
+                    <tr>
+                        <td>Invertované</td>
+                        <td><input type="checkbox" id="parInv${index}"></td>
+                    </tr>
+                    <tr>
+                        <td>Počet driverů</td>
+                        <td><input type="number" id="parNod${index}" onblur="checkValue(this)" onchange="generateDrivers(this, ${index})" min="1" max="16"></td>
+                    </tr>
+                    <tr> 
+                        <td id="driverContainer${index}" class="container" colspan="2"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><h3>Rozdělení ${index}. světlometu na části:</h3></td>
+                    </tr>
+                    <tr>
+                        <td>Počet částí:</td>
+                        <td><input type="number" id="parNop${index}" onblur="checkValue(this)" onchange="generateParts(this, ${index})" min="1" max="5"></td>
+                    </tr>
+                    <tr> 
+                        <td id="partContainer${index}" class="container" colspan="2"></td>
+                    </tr>
+                    `;
+                    lightContainer.appendChild(lightTable);
+                }
             }
-            const selects = document.querySelectorAll('.part_select');
-            selects.forEach(select => update_selects(select));
+            else {
+                lightContainer.innerHTML = "";
+            }
         }
 
-        function update_selects(input) {
-            const selects = document.querySelectorAll('.part_select');
-            selects.forEach(select => {
-                const selectedOptions = [...selects].filter(s => s !== select).map(s => s.value);
-                select.querySelectorAll('option').forEach(option => {
-                option.disabled = selectedOptions.includes(option.value);
-                });
+        function generateDrivers(input, number) {
+            if (Number(input.value) <= Number(input.max)) {
+                const driverCount = input.value;
+                const driverContainer = document.getElementById(`driverContainer${number}`);
+                driverContainer.innerHTML = "";
+                for (let i = 1; i <= driverCount; i++) {
+                    const driverTable = document.createElement("table");
+                    driverTable.innerHTML = `
+                    <tr>
+                            <td>Adresa ${i}. driveru</td>
+                            <td><input type="number" id="parAdrod${number}_${i}" onblur="checkValue(this)" min="1" max="31"></td>
+                    </tr>
+                    <tr>
+                            <td>Maska ${i}. driveru</td>
+                            <td><input type="text" id="parMaskod${number}_${i}" onblur="checkLength(this)" oninput="validateMaskInput(this)" minlength="16" maxlength="16" wanted_length="16"></td>
+                    
+                    </tr>
+                    `;
+                    driverContainer.appendChild(driverTable);
+                }
+            }
+        }
+
+        function generateParts(input, number) {
+           if (Number(input.value) <= Number(input.max)) {
+                const partCount = input.value;
+                const partContainer = document.getElementById(`partContainer${number}`);
+                partContainer.innerHTML = "";
+
+                const options = ["Tail", "Turn", "Brake", "Reverse", "Rear fog"];
+
+                for (let i = 1; i <= partCount; i++) {
+                    const partTable = document.createElement('table');
+                    let optionString = "";
+                    for (let j = 0; j < options.length; j++) {
+                        const isSelected = j == i - 1;
+                        optionString += `<option value="${options[j]}" ${isSelected ? 'selected' : ''}>${options[j]}</option>`;
+                    }
+                    partTable.innerHTML = `
+                    <tr>
+                        <td>Typ ${i}. části světlometu</td>
+                        <td>
+                        <select class="partSelect${number}" id="patTop${number}_${i}" onchange="updateSelects(this, ${number})">
+                            ${optionString}
+                        </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Počátek ${i}. části světlometu</td>
+                        <td><input type="number" onblur="checkValue(this)" id="parSop${number}_${i}" min="0" max="128"></td>
+                    </tr>
+                    <tr>
+                        <td>Délka ${i}. části světlometu</td>
+                        <td><input type="number" onblur="checkValue(this)" id="parLop${number}_${i}" min="1" max="128"></td>
+                    </tr>
+                    `;
+                    partContainer.appendChild(partTable);
+                }
+                const selects = document.querySelectorAll(`.partSelect${number}`);
+                selects.forEach(select => updateSelects(select, number));
+
+            } 
+        }
+
+
+        function updateSelects(input, number) {
+            const selects = document.querySelectorAll(`.partSelect${number}`);
+            for (let i = 0; i < selects.length; i++) {
+                const select = selects[i];
+                const selectedOptions = [];
+
+                for (let j = 0; j < selects.length; j++) {
+                if (j !== i) {
+                    selectedOptions.push(selects[j].value);
+                }
+                }
+
+                for (let k = 0; k < select.options.length; k++) {
+                    const option = select.options[k];
+                    option.disabled = selectedOptions.includes(option.value);
+                }
+
                 if (select.value === '' || selectedOptions.includes(select.value)) {
-                    const enabledOptions = select.querySelectorAll('option:not([disabled])');
-                if (enabledOptions.length > 0) {
-                    enabledOptions[0].selected = true;
+                    let enabledOptions = [];
+                    for (let k = 0; k < select.options.length; k++) {
+                        if (!select.options[k].disabled) {
+                        enabledOptions.push(select.options[k]);
+                        }
+                    }
+                    if (enabledOptions.length > 0) {
+                        enabledOptions[0].selected = true;
+                    }
                 }
-                }
-            });
+            }
         }
 
         function navmenu(id) {
@@ -610,15 +683,15 @@
                 document.getElementById("nav1").style.backgroundColor = "#100e91";
                 document.getElementById("nav2").style.backgroundColor = "#2a3fc9";
                 document.getElementById("nav3").style.backgroundColor = "#2a3fc9";
-                document.getElementById("settings_form").style.display = "block";
-                document.getElementById("param_form").style.display = "none";
+                document.getElementById("settingsForm").style.display = "block";
+                document.getElementById("paramForm").style.display = "none";
             }
             else if (id == 2) {
                 document.getElementById("nav2").style.backgroundColor = "#100e91";
                 document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
                 document.getElementById("nav3").style.backgroundColor = "#2a3fc9";
-                document.getElementById("settings_form").style.display = "none";
-                document.getElementById("param_form").style.display = "block";
+                document.getElementById("settingsForm").style.display = "none";
+                document.getElementById("paramForm").style.display = "block";
             }
             else if (id == 3) {
                 document.getElementById("nav3").style.backgroundColor = "#100e91";
@@ -628,7 +701,92 @@
                 //document.getElementById("animate").style.display = "block";
             }
         }
-    </script>
-</body>
 
+        function collectParamFormData() {
+            const paramFormData = {};
+            if (inputpass == null) {
+                paramFormData.reqpass = "empty";
+            } else {
+                paramFormData.reqpass = inputpass;
+            }
+
+            let numLights = Number(document.querySelector(".select").value);
+            paramFormData.numLights = numLights;
+
+            const lights = [];
+            for (let i = 1; i <= numLights; i++) {
+                const light = {};
+                light.inverted = document.getElementById(`parInv${i}`).checked;
+
+                let numDrivers = document.getElementById(`parNod${i}`).value;
+                if (numDrivers === "") {
+                    alert(`Chyva: Počet driverů ${i}. světla je prázdný`);
+                    return;
+                }
+                else {
+                    numDrivers = Number(numDrivers);
+                }
+                light.numDrivers = numDrivers;
+
+                const drivers = [];
+                for (let j = 1; j <= numDrivers; j++) {
+                    const driver = {};
+                    driver.address = document.getElementById(`parAdrod${i}_${j}`).value;
+                    if (driver.address === "") {
+                        alert(`Chyba: Adresa ${j}. driveru u ${i}. světla je prázdný`);
+                        return;
+                    }
+                    else {
+                        driver.address = Number(driver.address);
+                    }
+                    driver.mask = document.getElementById(`parMaskod${i}_${j}`).value;
+                    if (driver.mask === "") {
+                        alert(`Chyba: Maska ${j}. driveru u ${i}. světla je prázdná`);
+                        return;
+                    }
+                    drivers.push(driver);
+                }
+                light.drivers = drivers;
+
+                let numParts = document.getElementById(`parNop${i}`).value;
+                if (numParts === "") {
+                    alert(`Chyba: Počet částí u ${i}. světla je prázdný`);
+                    return;
+                }
+                else {
+                    numParts = Number(numParts);
+                }
+                light.numParts = numParts;
+
+                const parts = [];
+                for (let k = 1; k <= numParts; k++) {
+                    const part = {};
+                    part.type = document.getElementById(`patTop${i}_${k}`).value;
+                    part.start = document.getElementById(`parSop${i}_${k}`).value;
+                    if (part.start === "") {
+                        alert(`Chyba: Počátek ${k}. části u ${i}. světlometu je prázdný`);
+                        return;
+                    }
+                    else {
+                        part.start = Number(part.start);
+                    }
+                    part.length = document.getElementById(`parLop${i}_${k}`).value;
+                    if (part.length === "") {
+                        alert(`Chyba: Délka ${k}. části u ${i}. světlometu je prázdná`);
+                        return;
+                    }
+                    else {
+                        part.length = Number(part.length);
+                    }
+                    parts.push(part);
+                }
+                light.parts = parts;
+                lights.push(light);
+            }
+            paramFormData.lights = lights;
+            console.log(JSON.stringify(paramFormData));
+            wSend("light_params",paramFormData);
+        }
+   </script>
+</body>
 </html>

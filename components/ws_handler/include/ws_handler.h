@@ -4,7 +4,7 @@
 typedef struct {
     httpd_handle_t hd;
     int fd;
-    char *json_in;
+    httpd_ws_frame_t ws_pkt_in;
 }async_resp_arg_t;
 
 typedef struct {

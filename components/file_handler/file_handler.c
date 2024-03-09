@@ -183,7 +183,7 @@ void load_web(void)
     fclose(fp);
 }
 
-int save_config(user_config_t edited_u_conf){
+_Bool save_config(user_config_t edited_u_conf){
 	FILE *f = fopen(CONFIG_PATH, "w");
     if (f == NULL) {
         ESP_LOGE(TAG, "Failed to open file for writing");

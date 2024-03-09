@@ -28,6 +28,6 @@ extern user_config_t *user_config;
 void load_web(void);
 void init_spiffs(void);
 void load_config(void);
-int save_config(user_config_t edited_u_conf);
+_Bool save_config(user_config_t edited_u_conf);
 
 #endif
