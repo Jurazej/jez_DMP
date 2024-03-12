@@ -5,7 +5,7 @@
 #define INDEX_PATH "/spiffs/index.html"
 #define LOGO_PATH "/spiffs/logo.svg"
 #define ADMIN_PATH "/spiffs/admin.html"
-#define DEFAULTCONFIG_PATH "/spiffs/default_config.txt"
+#define DEFAULT_CONFIG_PATH "/spiffs/default_config.txt"
 #define CONFIG_PATH "/spiffs/config.txt"
 
 typedef struct {
@@ -22,12 +22,21 @@ typedef struct {
 	char* admin_pass;
 }user_config_t;
 
+typedef struct {
+	_Bool ssid;
+	_Bool wifi_pass;
+	_Bool maxcon;
+	_Bool mdns;
+	_Bool admin_pass;
+}change_of_config_t;
+
 extern files_t *loaded_files;
 extern user_config_t *user_config;
 
-void load_web(void);
 void init_spiffs(void);
-void load_config(void);
-_Bool save_config(user_config_t edited_u_conf);
+_Bool load_web(void);
+_Bool load_config(void);
+_Bool load_default_config(void);
+_Bool save_config(user_config_t edited_u_conf, change_of_config_t config_changed);
 
 #endif

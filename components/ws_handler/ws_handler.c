@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include "esp_log.h"
 #include "esp_http_server.h"
 #include "cjson.h"
@@ -54,9 +55,21 @@ void set_REARFOG(int x, int y, int z) {
     printf("Light index %d, REARFOG, start: %d, length: %d\n", x, y, z);
 }
 
+_Bool check_json_object(cJSON *obj, int type) {
+    if (obj == NULL) {
+        return true;
+    }
+    else {
+    	if (type!=obj->type) {
+    		return true;
+    	}
+    	else {
+    		return false;
+    	}
+    }
+}
 
-static void ws_async_send(void *arg)
-{
+static void ws_async_send(void *arg) {
     async_resp_arg_t *resp_arg = arg;
 
     ESP_LOGI(TAG, "Json out: %s", resp_arg->ws_pkt_in.payload);
@@ -80,8 +93,7 @@ static void ws_async_send(void *arg)
 }
 
 //Funkce pro vložení odesílací funkce do pracovní fronty
-esp_err_t trigger_async_send(httpd_req_t *req, httpd_ws_frame_t ws_pkt)
-{
+esp_err_t trigger_async_send(httpd_req_t *req, httpd_ws_frame_t ws_pkt) {
 	async_resp_arg_t *resp_arg = malloc(sizeof(async_resp_arg_t));
     resp_arg->hd = req->handle;
     resp_arg->fd = httpd_req_to_sockfd(req);
@@ -89,8 +101,7 @@ esp_err_t trigger_async_send(httpd_req_t *req, httpd_ws_frame_t ws_pkt)
     return httpd_queue_work(req->handle, ws_async_send, resp_arg);
 }
 
-esp_err_t ws_send_json(httpd_req_t *req, cJSON *json_in)
-{
+esp_err_t ws_send_json(httpd_req_t *req, cJSON *json_in) {
 	char *json_str = cJSON_Print(json_in);
 	ESP_LOGI(TAG, "Json out: %s", json_str);
 	cJSON_Delete(json_in);
@@ -103,8 +114,7 @@ esp_err_t ws_send_json(httpd_req_t *req, cJSON *json_in)
 }
 
 //Funkce pro zpracování přijaté zprávy
-esp_err_t handle_ws_req(httpd_req_t *req)
-{
+esp_err_t handle_ws_req(httpd_req_t *req) {
     if (req->method == HTTP_GET){
         ESP_LOGI(TAG, "Handshake done, the new connection was opened");
         return ESP_OK;
@@ -138,11 +148,15 @@ esp_err_t handle_ws_req(httpd_req_t *req)
     if (ws_pkt.type == HTTPD_WS_TYPE_TEXT) {
     	cJSON *json_root = cJSON_Parse((char *)ws_pkt.payload);
 
-    	char *typew = cJSON_GetObjectItemCaseSensitive(json_root,"type")->valuestring;
+    	cJSON *in_type_obj = cJSON_GetObjectItemCaseSensitive(json_root,"type");
+    	if (check_json_object(in_type_obj,cJSON_String)) {
+    		FREE_AND_RETURN_FAIL
+    	}
+    	char *in_type = in_type_obj->valuestring;
 
-    	if (strcmp(typew, "status_sync") == 0) {
+    	if (strcmp(in_type, "status_sync") == 0) {
     		cJSON *status, *anim;
-			cJSON_AddStringToObject(status=cJSON_CreateObject(), "type", typew);
+			cJSON_AddStringToObject(status=cJSON_CreateObject(), "type", in_type);
     		cJSON_AddItemToObject(status, "value", anim=cJSON_CreateObject());
     		int anim_segs = (sizeof(animlight) / sizeof(animlight[0]));
     		cJSON *animn[anim_segs];
@@ -159,44 +173,67 @@ esp_err_t handle_ws_req(httpd_req_t *req)
     		return ws_send_json(req, status);
     	}
 
-    	else if (strcmp(typew, "svalue") == 0) {
-    		ESP_LOGI(TAG, "Type is %s", typew);
-    		int idw = cJSON_GetObjectItemCaseSensitive(json_root,"id")->valueint;
-    		ESP_LOGI(TAG, "ID is %d", idw);
-    		int valuew = cJSON_GetObjectItemCaseSensitive(json_root,"value")->valueint;
-    		ESP_LOGI(TAG, "Value is %d", valuew);
-			animlight[idw-1].brightness = valuew;
-			animlight[idw-1].speed = 0;
-			animlight[idw-1].type = 0;
-			cJSON_Delete(json_root);
-			return trigger_async_send(req, ws_pkt);
-    	}
+    	else if (strcmp(in_type, "svalue") == 0) {
+        	cJSON *in_id_obj = cJSON_GetObjectItemCaseSensitive(json_root,"id");
+        	if (check_json_object(in_id_obj,cJSON_Number)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+        	uint8_t in_id = in_id_obj->valueint;
 
-    	else if (strcmp(typew, "animate") == 0) {
-    		ESP_LOGI(TAG, "Type is %s", typew);
-    		int idw = cJSON_GetObjectItemCaseSensitive(json_root,"id")->valueint;
-    		ESP_LOGI(TAG, "ID is %d", idw);
-    		cJSON *in_params = cJSON_GetObjectItemCaseSensitive(json_root,"value");
-    		int brightness = cJSON_GetObjectItemCaseSensitive(in_params,"brightness")->valueint;
-    		ESP_LOGI(TAG, "Brightness is %d", brightness);
-    		int speed = cJSON_GetObjectItemCaseSensitive(in_params,"speed")->valueint;
-			ESP_LOGI(TAG, "Speed is %d", speed);
-			int type = cJSON_GetObjectItemCaseSensitive(in_params,"type")->valueint;
-			ESP_LOGI(TAG, "Type of animation is %d", type);
-			animlight[idw-1].brightness = brightness;
-			animlight[idw-1].speed = speed;
-			animlight[idw-1].type = type;
+        	cJSON *in_value_obj = cJSON_GetObjectItemCaseSensitive(json_root,"value");
+        	if (check_json_object(in_value_obj,cJSON_Number)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+
+			animlight[in_id-1].brightness = in_value_obj->valueint;
+			animlight[in_id-1].speed = 0;
+			animlight[in_id-1].type = 0;
 
 			cJSON_Delete(json_root);
 			return trigger_async_send(req, ws_pkt);
     	}
 
-		else if (strcmp(typew, "login") == 0) {
-			ESP_LOGI(TAG, "Type is %s", typew);
-			char *pass = cJSON_GetObjectItemCaseSensitive(json_root,"value")->valuestring;
+    	else if (strcmp(in_type, "animate") == 0) {
+        	cJSON *in_id_obj = cJSON_GetObjectItemCaseSensitive(json_root,"id");
+        	if (check_json_object(in_id_obj,cJSON_Number)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+        	uint8_t in_id = in_id_obj->valueint;
+
+    		cJSON *in_anim= cJSON_GetObjectItemCaseSensitive(json_root,"value");
+        	if (check_json_object(in_anim,cJSON_Object)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+        	cJSON *brightness_obj = cJSON_GetObjectItemCaseSensitive(in_anim,"brightness");
+        	if (check_json_object(brightness_obj,cJSON_Number)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+        	cJSON *speed_obj = cJSON_GetObjectItemCaseSensitive(in_anim,"speed");
+        	if (check_json_object(speed_obj,cJSON_Number)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+        	cJSON *type_obj = cJSON_GetObjectItemCaseSensitive(in_anim,"type");
+        	if (check_json_object(type_obj,cJSON_Number)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+
+			animlight[in_id-1].brightness = brightness_obj->valueint;
+			animlight[in_id-1].speed = speed_obj->valueint;
+			animlight[in_id-1].type = type_obj->valueint;
+
+			cJSON_Delete(json_root);
+			return trigger_async_send(req, ws_pkt);
+    	}
+
+		else if (strcmp(in_type, "login") == 0) {
+	    	cJSON *pass_obj = cJSON_GetObjectItemCaseSensitive(json_root,"value");
+	    	if (check_json_object(pass_obj,cJSON_String)) {
+	    		FREE_AND_RETURN_FAIL
+	    	}
+
 			cJSON *return_json =cJSON_CreateObject();
 			cJSON_AddStringToObject(return_json, "type", "login");
-			if (strcmp(pass, user_config->admin_pass) == 0){
+			if (strcmp(pass_obj->valuestring, user_config->admin_pass) == 0){
 				cJSON_AddTrueToObject(return_json, "login_status");
 				cJSON *currentconfig;
 				cJSON_AddItemToObject(return_json, "currentconfig", currentconfig=cJSON_CreateObject());
@@ -213,39 +250,65 @@ esp_err_t handle_ws_req(httpd_req_t *req)
 			return ws_send_json(req, return_json);
 		}
 
-		else if (strcmp(typew, "config") == 0) {
-			ESP_LOGI(TAG, "Type is %s", typew);
+		else if (strcmp(in_type, "config") == 0) {
+			ESP_LOGI(TAG, "Type is %s", in_type);
 			cJSON *in_config = cJSON_GetObjectItemCaseSensitive(json_root,"value");
-			char *reqpass = cJSON_GetObjectItemCaseSensitive(in_config,"reqpass")->valuestring;
+        	if (check_json_object(in_config,cJSON_Object)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+
+	    	cJSON *pass_obj = cJSON_GetObjectItemCaseSensitive(in_config,"reqpass");
+	    	if (check_json_object(pass_obj,cJSON_String)) {
+	    		FREE_AND_RETURN_FAIL
+	    	}
+
 			cJSON *return_json = cJSON_CreateObject();
 			cJSON_AddStringToObject(return_json, "type", "config_change_status");
-			if (strcmp(reqpass, user_config->admin_pass) == 0){
+			if (strcmp(pass_obj->valuestring, user_config->admin_pass) == 0){
 				cJSON_AddTrueToObject(return_json, "login_status");
 				user_config_t edited_u_conf;
+				change_of_config_t config_changed;
 				cJSON *in_ssid = cJSON_GetObjectItemCaseSensitive(in_config,"ssid");
 			    if (cJSON_IsString(in_ssid) && (in_ssid->valuestring != NULL)){
-			    	edited_u_conf.ssid = cJSON_GetObjectItemCaseSensitive(in_config,"ssid")->valuestring;
+			    	edited_u_conf.ssid = in_ssid->valuestring;
+			    	config_changed.ssid = true;
+			    }
+			    else {
+			    	config_changed.ssid = false;
 			    }
 				cJSON *in_wifi_pass = cJSON_GetObjectItemCaseSensitive(in_config,"wifi_pass");
 			    if (cJSON_IsString(in_wifi_pass) && (in_wifi_pass->valuestring != NULL)) {
-			    	edited_u_conf.wifi_pass = cJSON_GetObjectItemCaseSensitive(in_config,"wifi_pass")->valuestring;
+			    	edited_u_conf.wifi_pass = in_wifi_pass->valuestring;
+			    	config_changed.wifi_pass = true;
+			    }
+			    else {
+			    	config_changed.wifi_pass = false;
 			    }
 			    cJSON *in_maxcon = cJSON_GetObjectItemCaseSensitive(in_config,"maxcon");
 				if (cJSON_IsNumber(in_maxcon) && (in_maxcon->valueint != 0)){
-					edited_u_conf.maxcon = cJSON_GetObjectItemCaseSensitive(in_config,"maxcon")->valueint;
+					edited_u_conf.maxcon = in_maxcon->valueint;
+					config_changed.maxcon = true;
 				}
-				else {
-					edited_u_conf.maxcon = 0;
-				}
+			    else {
+			    	config_changed.maxcon = false;
+			    }
 				cJSON *in_mdns = cJSON_GetObjectItemCaseSensitive(in_config,"mdns");
 			    if (cJSON_IsString(in_mdns) && (in_mdns->valuestring != NULL)){
-			    	edited_u_conf.mdns = cJSON_GetObjectItemCaseSensitive(in_config,"mdns")->valuestring;
+			    	edited_u_conf.mdns = in_mdns->valuestring;
+			    	config_changed.mdns = true;
+			    }
+			    else {
+			    	config_changed.mdns = false;
 			    }
 			    cJSON *in_admin_pass = cJSON_GetObjectItemCaseSensitive(in_config,"admin_pass");
 				if (cJSON_IsString(in_admin_pass) && (in_admin_pass->valuestring != NULL)) {
-					edited_u_conf.admin_pass = cJSON_GetObjectItemCaseSensitive(in_config,"admin_pass")->valuestring;
+					edited_u_conf.admin_pass = in_admin_pass->valuestring;
+					config_changed.admin_pass = true;
 				}
-				cJSON_AddNumberToObject(return_json, "change_success", save_config(edited_u_conf));
+			    else {
+			    	config_changed.admin_pass = false;
+			    }
+				cJSON_AddNumberToObject(return_json, "change_success", save_config(edited_u_conf, config_changed));
 			}
 			else{
 				cJSON_AddFalseToObject(return_json, "login_status");
@@ -254,82 +317,154 @@ esp_err_t handle_ws_req(httpd_req_t *req)
 			cJSON_Delete(json_root);
 			return ws_send_json(req, return_json);
 		}
-		else if (strcmp(typew, "restart") == 0) {
-			ESP_LOGI(TAG, "Type is %s", typew);
+
+		else if (strcmp(in_type, "restart") == 0) {
 			cJSON *in_value = cJSON_GetObjectItemCaseSensitive(json_root,"value");
-			char *reqpass = cJSON_GetObjectItemCaseSensitive(in_value,"reqpass")->valuestring;
-			if (strcmp(reqpass, user_config->admin_pass) == 0){
+        	if (check_json_object(in_value,cJSON_Object)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+	    	cJSON *pass_obj = cJSON_GetObjectItemCaseSensitive(in_value,"reqpass");
+	    	if (check_json_object(pass_obj,cJSON_String)) {
+	    		FREE_AND_RETURN_FAIL
+	    	}
+
+			if (strcmp(pass_obj->valuestring, user_config->admin_pass) == 0){
 				ESP_LOGI(TAG, "Device will restart...");
 				esp_restart();
 			}
 		}
-		else if (strcmp(typew, "light_params") == 0) {
-			ESP_LOGI(TAG, "Type is %s", typew);
-			cJSON *in_params= cJSON_GetObjectItemCaseSensitive(json_root,"value");
-			char *reqpass = cJSON_GetObjectItemCaseSensitive(in_params,"reqpass")->valuestring;
+
+		else if (strcmp(in_type, "default_config") == 0) {
+			cJSON *in_value = cJSON_GetObjectItemCaseSensitive(json_root,"value");
+        	if (check_json_object(in_value,cJSON_Object)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+	    	cJSON *pass_obj = cJSON_GetObjectItemCaseSensitive(in_value,"reqpass");
+	    	if (check_json_object(pass_obj,cJSON_String)) {
+	    		FREE_AND_RETURN_FAIL
+	    	}
+	    	cJSON *return_json = cJSON_CreateObject();
+	    	cJSON_AddStringToObject(return_json, "type", "default_config_status");
+			if (strcmp(pass_obj->valuestring, user_config->admin_pass) == 0){
+				cJSON_AddTrueToObject(return_json, "login_status");
+				cJSON_AddNumberToObject(return_json, "success", load_default_config());
+			}
+			else {
+				cJSON_AddFalseToObject(return_json, "login_status");
+			}
+			free(ws_pkt.payload);
+			cJSON_Delete(json_root);
+			return ws_send_json(req, return_json);
+
+		}
+
+		else if (strcmp(in_type, "light_params") == 0) {
+    		cJSON *in_params = cJSON_GetObjectItemCaseSensitive(json_root,"value");
+        	if (check_json_object(in_params,cJSON_Object)) {
+        		FREE_AND_RETURN_FAIL
+        	}
+	    	cJSON *pass_obj = cJSON_GetObjectItemCaseSensitive(in_params,"reqpass");
+	    	if (check_json_object(pass_obj,cJSON_String)) {
+	    		FREE_AND_RETURN_FAIL
+	    	}
+
 			cJSON *return_json = cJSON_CreateObject();
 			cJSON_AddStringToObject(return_json, "type", "param_change_status");
-			if (strcmp(reqpass, user_config->admin_pass) == 0){
+			if (strcmp(pass_obj->valuestring, user_config->admin_pass) == 0){
 				cJSON_AddTrueToObject(return_json, "login_status");
-			    int num_lights = cJSON_GetObjectItemCaseSensitive(in_params, "numLights")->valueint;
-			    set_number_of_active_lights(num_lights);
+
+	        	cJSON *num_lights_obj = cJSON_GetObjectItemCaseSensitive(in_params,"numLights");
+	        	if (check_json_object(num_lights_obj,cJSON_Number)) {
+	        		FREE_AND_RETURN_FAIL
+	        	}
+			    set_number_of_active_lights(num_lights_obj->valueint);
 
 			    cJSON* lights = cJSON_GetObjectItemCaseSensitive(in_params, "lights");
-			    if (lights == NULL) {
-			        printf("Error: 'lights' array not found\n");
-				    free(ws_pkt.payload);
-					cJSON_Delete(json_root);
-			        return ESP_FAIL;
-			    }
+	        	if (check_json_object(lights,cJSON_Array)) {
+	        		FREE_AND_RETURN_FAIL
+	        	}
 
 			    for (int i = 0; i < cJSON_GetArraySize(lights); i++) {
 			        cJSON* light = cJSON_GetArrayItem(lights, i);
-
+			        if (check_json_object(light,cJSON_Object)) {
+						FREE_AND_RETURN_FAIL
+					}
 			        cJSON *inverted = cJSON_GetObjectItemCaseSensitive(light, "inverted");
 			        _Bool inverted_bool = cJSON_IsTrue(inverted);
 			        set_if_the_light_is_inverted(i, inverted_bool);
 
-			        int num_drivers = cJSON_GetObjectItemCaseSensitive(light, "numDrivers")->valueint;
-			        set_amount_of_drivers(i, num_drivers);
+		        	cJSON *num_drivers_obj = cJSON_GetObjectItemCaseSensitive(light,"numDrivers");
+		        	if (check_json_object(num_drivers_obj,cJSON_Number)) {
+		        		FREE_AND_RETURN_FAIL
+		        	}
+			        set_amount_of_drivers(i, num_drivers_obj->valueint);
 
 			        cJSON* drivers = cJSON_GetObjectItemCaseSensitive(light, "drivers");
+		        	if (check_json_object(drivers,cJSON_Array)) {
+		        		FREE_AND_RETURN_FAIL
+		        	}
 			        if (drivers != NULL) {
 			            for (int j = 0; j < cJSON_GetArraySize(drivers); j++) {
 			                cJSON* driver = cJSON_GetArrayItem(drivers, j);
-			                int address = cJSON_GetObjectItemCaseSensitive(driver, "address")->valueint;
-			                set_address(i, j, address);
-			                const char* mask = cJSON_GetObjectItemCaseSensitive(driver, "mask")->valuestring;
+					        if (check_json_object(driver,cJSON_Object)) {
+								FREE_AND_RETURN_FAIL
+							}
+				        	cJSON *address_obj = cJSON_GetObjectItemCaseSensitive(driver,"address");
+				        	if (check_json_object(address_obj,cJSON_Number)) {
+				        		FREE_AND_RETURN_FAIL
+				        	}
+			                set_address(i, j, address_obj->valueint);
+
+			    	    	cJSON *mask_obj = cJSON_GetObjectItemCaseSensitive(driver,"mask");
+			    	    	if (check_json_object(mask_obj,cJSON_String)) {
+			    	    		FREE_AND_RETURN_FAIL
+			    	    	}
 			                char *endptr;
-			                uint16_t mask_bin = strtol(mask, &endptr, 2);
+			                uint16_t mask_bin = strtol(mask_obj->valuestring, &endptr, 2);
 			                make_mask(i, j, mask_bin);
 			            }
 			        }
 			        cJSON* parts = cJSON_GetObjectItemCaseSensitive(light, "parts");
+			        if (check_json_object(parts,cJSON_Array)) {
+						FREE_AND_RETURN_FAIL
+					}
 			        if (parts != NULL) {
 			            for (int j = 0; j < cJSON_GetArraySize(parts); j++) {
 			                cJSON* part = cJSON_GetArrayItem(parts, j);
-			                const char* type = cJSON_GetObjectItemCaseSensitive(part, "type")->valuestring;
-			                int start = cJSON_GetObjectItemCaseSensitive(part, "start")->valueint;
-			                int length = cJSON_GetObjectItemCaseSensitive(part, "length")->valueint;
-			                if (strcmp(type, "Tail") == 0) {
-			                    set_TAIL(i, start, length);
+					        if (check_json_object(part,cJSON_Object)) {
+								FREE_AND_RETURN_FAIL
+							}
+			    	    	cJSON *type_obj = cJSON_GetObjectItemCaseSensitive(part, "type");
+			    	    	if (check_json_object(type_obj,cJSON_String)) {
+			    	    		FREE_AND_RETURN_FAIL
+			    	    	}
+				        	cJSON *start_obj = cJSON_GetObjectItemCaseSensitive(part, "start");
+				        	if (check_json_object(start_obj,cJSON_Number)) {
+				        		FREE_AND_RETURN_FAIL
+				        	}
+				        	cJSON *length_obj = cJSON_GetObjectItemCaseSensitive(part, "length");
+				        	if (check_json_object(length_obj,cJSON_Number)) {
+				        		FREE_AND_RETURN_FAIL
+				        	}
+			                if (strcmp(type_obj->valuestring, "Tail") == 0) {
+			                    set_TAIL(i, start_obj->valueint, length_obj->valueint);
 			                }
-			                else if (strcmp(type, "Brake") == 0) {
-			                    set_BREAK(i, start, length);
+			                else if (strcmp(type_obj->valuestring, "Brake") == 0) {
+			                    set_BREAK(i, start_obj->valueint, length_obj->valueint);
 			                }
-			                else if (strcmp(type, "Turn") == 0) {
-			                    set_TURN(i, start, length);
+			                else if (strcmp(type_obj->valuestring, "Turn") == 0) {
+			                    set_TURN(i, start_obj->valueint, length_obj->valueint);
 			                }
-			                else if (strcmp(type, "Reverse") == 0) {
-			                    set_REVERSE(i, start, length);
+			                else if (strcmp(type_obj->valuestring, "Reverse") == 0) {
+			                    set_REVERSE(i, start_obj->valueint, length_obj->valueint);
 			                }
-			                else if (strcmp(type, "Rear fog") == 0) {
-			                    set_REARFOG(i, start, length);
+			                else if (strcmp(type_obj->valuestring, "Rear fog") == 0) {
+			                    set_REARFOG(i, start_obj->valueint, length_obj->valueint);
 			                }
 			            }
 			        }
 			    }
-			    cJSON_AddNumberToObject(return_json, "change_success", 1);
+			    cJSON_AddNumberToObject(return_json, "change_success", true);
 			}
 			else{
 				cJSON_AddFalseToObject(return_json, "login_status");

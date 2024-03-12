@@ -1,6 +1,11 @@
 #ifndef WS_HANDLER
 #define WS_HANDLER
 
+#define FREE_AND_RETURN_FAIL \
+    free(ws_pkt.payload); \
+    cJSON_Delete(json_root); \
+    return ESP_FAIL;
+
 typedef struct {
     httpd_handle_t hd;
     int fd;

@@ -213,6 +213,14 @@
             background-color: #920c0c;
         }
 
+        .configForm .blueButton {
+            background-color: #0d45ff;
+        }
+
+        .configForm .blueButton:active {
+            background-color: #15039c;
+        }
+
         .configForm select {
             appearance: none;
             -webkit-appearance: none;
@@ -302,7 +310,10 @@
                     <td colspan="3"><button onclick="changeConfig()">Uložit nastavení</button></td>
                 </tr>
                 <tr>
-                    <td colspan="3"><button class="restartButton" onclick="restart()">Restartovat zařízení</button></td>
+                    <td colspan="3"><button class="blueButton" onclick="defaultConfig(this)">Obnovit základní nastavení</button></td>
+                </tr>
+                <tr>
+                    <td colspan="3"><button class="restartButton" onclick="restart(this)">Restartovat zařízení</button></td>
                 </tr>
             </table>
             <br>
@@ -350,7 +361,7 @@
                     <td colspan="2"><button onclick="collectParamFormData()">Uložit nastavení</button></td>
                 </tr>
                 <tr>
-                    <td colspan="2"><button class="restartButton" onclick="restart()">Restartovat zařízení</button></td>
+                    <td colspan="2"><button class="restartButton" onclick="restart(this)">Restartovat zařízení</button></td>
                 </tr>
             </table>
             <br>
@@ -366,10 +377,16 @@
     <script>
         const gateway = `ws://${window.location.hostname}/ws`;
         let websocket;
-        navmenu(2);
         let savelogin = false;
         let inputpass;
+        let last_default_config = 0;
+        let last_restart = 0;
+        navmenu(1);
         window.addEventListener("load", onLoad);
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
         function initWebSocket() {
             console.log("Trying to open a WebSocket connection...");
             websocket = new WebSocket(gateway);
@@ -388,7 +405,7 @@
             console.log("Connection closed");
             setTimeout(initWebSocket, 2000);
         }
-        function onMessage(event) {
+        async function onMessage(event) {
             console.log(event.data);
             const rmsg = JSON.parse(event.data);
             if (rmsg.type == "login") {
@@ -403,9 +420,8 @@
                     document.getElementById("cvWifipass").innerHTML = rmsg.currentconfig.wifi_pass;
                     document.getElementById("cvMdns").innerHTML = rmsg.currentconfig.mdns;
                     document.getElementById("cvMaxcon").innerHTML = rmsg.currentconfig.maxcon;
-                    setTimeout(function() {
-                        document.getElementById("loginForm").style.display = "none";
-                    }, 1000);
+                    await sleep(1000);
+                    document.getElementById("loginForm").style.display = "none";
 
                 }
                 else {
@@ -422,6 +438,16 @@
                     }
                     else {
                         alert("Změna nastavení se NEZDAŘILA");
+                    }   
+                }
+            }
+            if (rmsg.type == "default_config_status") {
+                if (rmsg.login_status == true) {
+                    if (rmsg.success == 1) {
+                        alert("Obnovení základního nastavení proběhlo ÚSPĚŠNĚ, změny se projeví AŽ PO RESTARTU zařízení");
+                    }
+                    else {
+                        alert("Obnovení základního nastavení se NEZDAŘILO");
                     }   
                 }
             }
@@ -463,11 +489,40 @@
             }
         }
 
-        function restart() {
-            let jsnout = new Object();
-            jsnout["reqpass"] = inputpass;
-            wSend("restart",jsnout);
-            alert("Zařízení bude restartováno");
+        async function restart(input) {
+            if (last_restart== 0) {
+                last_restart = 1;
+                input.innerHTML = "Znovu pro potvrzení restartu";
+                await sleep(3000);
+                last_restart = 0;
+                input.innerHTML = "Restartovat zařízení";
+
+            }
+            else {
+                last_restart = 0;
+                let jsnout = {};
+                jsnout["reqpass"] = inputpass;
+                wSend("restart",jsnout);
+                alert("Zařízení bude restartováno"); 
+                input.innerHTML = "Restartovat zařízení";     
+            }
+        }
+
+        async function defaultConfig(input) {
+            if (last_default_config == 0) {
+                last_default_config = 1;
+                input.innerHTML = "Znovu pro potvrzení obnovení";
+                await sleep(3000);
+                last_default_config = 0;
+                input.innerHTML = "Obnovit základní nastavení";
+            }
+            else {
+                last_default_config = 0;
+                let jsnout = {};
+                jsnout["reqpass"] = inputpass;
+                wSend("default_config",jsnout);
+                input.innerHTML = "Obnovit základní nastavení";
+            }
         }
 
         function getCookie(cname) {
@@ -492,7 +547,7 @@
             let configMaxcon = document.getElementById("configMaxcon").value
             let configMdns = document.getElementById("configMdns").value
             let configAdminpass = document.getElementById("configAdminpass").value
-            let cfgts = new Object();
+            let cfgts = {};
             if (configSsid != "" || configWifipass != "" || configMaxcon != "" || configMdns != "" || configAdminpass != "") {
                 if (configSsid != "") {
                     cfgts["ssid"] = configSsid;
