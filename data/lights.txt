@@ -1,0 +1,12 @@
+{
+        "nol":  2,
+        "lights":       [{
+                        "index":        240,
+                        "nop":  2,
+                        "part_name":    ["Test", "Test2"]
+                }, {
+                        "index":        171,
+                        "nop":  3,
+                        "part_name":    ["Lol", "Lol2", "Lol3"]
+                }]
+}

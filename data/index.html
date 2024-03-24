@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html>
+<html lang="cs">
 <head>
     <title>Jiri Jez DMP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
@@ -59,11 +59,11 @@
             position: fixed;
             bottom: 0;
             width: 100%;
+            display: none;
         }
 
         .navmenu li {
             float: left;
-            width: 50%;
         }
 
         .navmenu button {
@@ -75,7 +75,7 @@
             border: none;
             cursor: pointer;
             width: 100%;
-            font-size: 18px;
+            font-size: 24px;
         }
 
         @media (max-width: 767px) {
@@ -176,213 +176,22 @@
 
 <body>
     <div class="top">
-        <img src="logo" alt="Logo" class="logo">
+        <img src="logo.svg" alt="Logo" class="logo">
         <h1>Jiří Jež DMP</h1>
     </div>
-    <div class="static" id="static">
-        <div class="main">
-            <div class="card">
-                <h2>Ovládání 1. části světlometu</h2>
-                <p class="state">Současný stav: <span id="state1">Nenastaveno</span></p>
-                <div class="slideContainer">
-                    <label class="rangeLabel" for="range1">Svítivost:</label>
-                    <input type="range" min="1" max="250" value="125" id="srange1">
-                </div>
-                <p><button onclick="staticButton(1)">Odeslat</button></p>
-            </div>
-        </div>
-        <div class="main">
-            <div class="card">
-                <h2>Ovládání 2. části světlometu</h2>
-                <p class="state">Současný stav: <span id="state2">Nenastaveno</span></p>
-                <div class="slideContainer">
-                    <label class="rangeLabel" for="range2">Svítivost:</label>
-                    <input type="range" min="1" max="250" value="125" id="srange2">
-                </div>
-                <p><button onclick="staticButton(2)">Odeslat</button></p>
-            </div>
-        </div>
-        <div class="main">
-            <div class="card">
-                <h2>Ovládání 3. části světlometu</h2>
-                <p class="state">Současný stav: <span id="state3">Nenastaveno</span></p>
-                <div class="slideContainer">
-                    <label class="rangeLabel" for="range3">Svítivost:</label>
-                    <input type="range" min="1" max="250" value="125" id="srange3">
-                </div>
-                <p><button onclick="staticButton(3)">Odeslat</button></p>
-            </div>
-        </div>
+    <div id="lightContainer1">
     </div>
-    <div class="animate" id="animate">
-        <div class="main">
-            <div class="card">
-                <h2>Ovládání 1. části světlometu</h2>
-                <p class="state">Současný stav: <span id="aState1">Nenastaveno</span></p>
-                <select class="aSelect" id="aSelect1">
-                    <option>Slide right</option>
-                    <option>Slide left</option>
-                    <option>Slide2 right</option>
-                    <option>Slide2 left</option>
-                    <option>Bouncing ball</option>
-                    <option>Breathe</option>
-                </select>
-                <div class="slideContainer">
-                    <label class="rangeLabel" for="aRange11">Svítivost:</label>
-                    <input type="range" min="1" max="250" value="125" id="aRange11">
-                </div>
-                <div class="slideContainer">
-                    <label class="rangeLabel" for="aRange12">Rychlost:</label>
-                    <input class="speed" type="range" min="200" max="10200" value="5200" id="aRange12">
-                </div>
-                <p><button onclick="animButton(1)">Odeslat</button></p>
-            </div>
-        </div>
-        <div class="main">
-            <div class="card">
-                <h2>Ovládání 2. části světlometu</h2>
-                <p class="state">Současný stav: <span id="aState2">Nenastaveno</span></p>
-                <select class="aSelect" id="aSelect2">
-                    <option>Slide right</option>
-                    <option>Slide left</option>
-                    <option>Slide2 right</option>
-                    <option>Slide2 left</option>
-                    <option>Bouncing ball</option>
-                    <option>Breathe</option>
-                </select>
-                <div class="slideContainer">
-                    <label class="rangeLabel" for="aRange21">Svítivost:</label>
-                    <input type="range" min="1" max="250" value="125" id="aRange21">
-                </div>
-                <div class="slideContainer">
-                    <label class="rangeLabel" for="aRange22">Rychlost:</label>
-                    <input class="speed" type="range" min="200" max="10200" value="5200" id="aRange22">
-                </div>
-                <p><button onclick="animButton(2)">Odeslat</button></p>
-            </div>
-        </div>
-        <div class="main">
-            <div class="card">
-                <h2>Ovládání 3. části světlometu</h2>
-                <p class="state">Současný stav: <span id="aState3">Nenastaveno</span></p>
-                <select class="aSelect" id="aSelect3">
-                    <option>Slide right</option>
-                    <option>Slide left</option>
-                    <option>Slide2 right</option>
-                    <option>Slide2 left</option>
-                    <option>Bouncing ball</option>
-                    <option>Breathe</option>
-                </select>
-                <div class="slideContainer">
-                    <label class="rangeLabel" for="aRange31">Svítivost:</label>
-                    <input type="range" min="1" max="250" value="125" id="aRange31">
-                </div>
-                <div class="slideContainer">
-                    <label class="rangeLabel" for="aRange32">Rychlost:</label>
-                    <input class="speed" type="range" min="200" max="10200" value="5200" id="aRange32">
-                </div>
-                <p><button onclick="animButton(3)">Odeslat</button></p>
-            </div>
-        </div>
+    <div id="lightContainer2">
+    </div>
+    <div id="lightContainer3">
+    </div>
+    <div id="lightContainer4">
     </div>
     <br>
     <div class="navmenu">
-        <ul>
-            <li><button id="nav1" onclick="navMenu(1)">Statické svícení</button></li>
-            <li><button id="nav2" onclick="navMenu(2)">Animace</button></li>
+        <ul id="menuContainer">
         </ul>
     </div>
-    <script>
-        const gateway = `ws://${window.location.hostname}/ws`;
-        let websocket;
-        navMenu(1);
-        window.addEventListener("load", onLoad);
-        function initWebSocket() {
-            console.log("Trying to open a WebSocket connection...");
-            websocket = new WebSocket(gateway);
-            websocket.onopen = onOpen;
-            websocket.onclose = onClose;
-            websocket.onmessage = onMessage;
-        }
-        function onOpen(event) {
-            console.log("Connection opened");
-            websocket.send(JSON.stringify({
-                "type": "status_sync"
-            }));
-        }
-        function onClose(event) {
-            console.log("Connection closed");
-            setTimeout(initWebSocket, 2000);
-        }
-        function onMessage(event) {
-            console.log(event.data);
-            const rmsg = JSON.parse(event.data);
-            if (rmsg.type == "svalue") {
-                document.getElementById("srange"+rmsg.id).value = rmsg.value;
-                document.getElementById("state"+rmsg.id).innerHTML = "Statické svícení";
-                document.getElementById("aState"+rmsg.id).innerHTML = "Statické svícení";
-            }
-            else if (rmsg.type == "animate") {
-                document.getElementById("aRange"+rmsg.id+"1").value = rmsg.value.brightness;
-                document.getElementById("aRange"+rmsg.id+"2").value = rmsg.value.speed;
-                document.getElementById("state"+rmsg.id).innerHTML = "Spuštěna animace";
-                document.getElementById("aState"+rmsg.id).innerHTML = "Spuštěna animace";
-            }
-            else if (rmsg.type == "status_sync") {
-                for (const i in rmsg.value) {
-                    if (rmsg.value[i].speed != 0){
-                        document.getElementById("aSelect"+i+"").selectedIndex = rmsg.value[i].type-1;
-                        document.getElementById("aRange"+i+"1").value = rmsg.value[i].brightness;
-                        document.getElementById("aRange"+i+"2").value = rmsg.value[i].speed;
-                        document.getElementById("state"+i+"").innerHTML = "Spuštěna animace";
-                        document.getElementById("aState"+i+"").innerHTML = "Spuštěna animace";
-                    }
-                    else if (rmsg.value[i].brightness != 0 && rmsg.value[i].speed == 0){
-                        document.getElementById("srange"+i+"").value = rmsg.value[i].brightness;
-                        document.getElementById("state"+i+"").innerHTML = "Statické svícení";
-                        document.getElementById("aState"+i+"").innerHTML = "Statické svícení";
-                    }
-                }
-            }
-        }
-        function onLoad(event) {
-            initWebSocket();
-        }
-
-        function staticButton(id) {
-            wSend("svalue",id,Number(document.getElementById("srange"+id+"").value));
-        }
-
-        function animButton(id) {
-            const params = {};
-            params["brightness"] = Number(document.getElementById("aRange"+id+"1").value);
-            params["speed"] = Number(document.getElementById("aRange"+id+"2").value);
-            params["type"] = Number(document.getElementById("aSelect"+id+"").selectedIndex)+1;
-            wSend("animate",id,params);
-        }
-
-        function wSend(type,id,value=1) {
-            websocket.send(JSON.stringify({
-                "type": type,
-                "id": Number(id),
-                "value": value
-            }));
-        }
-
-        function navMenu(id) {
-            if (id == 1)    {
-                document.getElementById("nav1").style.backgroundColor = "#100e91";
-                document.getElementById("nav2").style.backgroundColor = "#2a3fc9";
-                document.getElementById("static").style.display = "block";
-                document.getElementById("animate").style.display = "none";
-            }
-            else if (id == 2) {
-                document.getElementById("nav2").style.backgroundColor = "#100e91";
-                document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
-                document.getElementById("static").style.display = "none";
-                document.getElementById("animate").style.display = "block";
-            }
-        }
-    </script>
+    <script src="index.js"></script>
 </body>
 </html>

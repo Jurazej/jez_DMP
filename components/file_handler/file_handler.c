@@ -3,25 +3,32 @@
 #include <stdbool.h>
 #include "esp_log.h"
 #include "esp_spiffs.h"
-#include "cjson.h"
 
 #include "file_handler.h"
 
 static const char *TAG = "File_handler";
 
+lights_t lights_;
+
 files_t *loaded_files;
 user_config_t *user_config;
 
+//---------------------------------------------------------
+// Inicializace SPIFFS
+//---------------------------------------------------------
 void init_spiffs(void) {
     esp_vfs_spiffs_conf_t conf = {
         .base_path = "/spiffs",
         .partition_label = NULL,
-        .max_files = 8,
+        .max_files = 10,
         .format_if_mount_failed = true};
 
     ESP_ERROR_CHECK(esp_vfs_spiffs_register(&conf));	//Registrace SPIFFS pomocí nastavené konfigurace
 }
 
+//---------------------------------------------------------
+// Načtení configu z paměti do proměnné user_config
+//---------------------------------------------------------
 _Bool load_config(void) {
     char *loaded_json_config;
 
@@ -122,6 +129,107 @@ _Bool load_config(void) {
     return true;
 }
 
+//---------------------------------------------------------
+// Načtení parametrů světlometů z paměti do proměnné lights_
+//---------------------------------------------------------
+_Bool load_ligts_params(void) {
+    FILE *fp = fopen(LIGHTS_PATH, "r");
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Error while opening file %s",LIGHTS_PATH);
+    	return false;
+    }
+    fseek(fp, 0, SEEK_END);
+    size_t file_size = ftell(fp);
+    rewind(fp);
+    char *loaded = (char *)malloc(file_size+1);
+    if (fread(loaded, file_size, 1, fp) == 0)
+    {
+    	ESP_LOGE(TAG, "Error while reading file %s",LIGHTS_PATH);
+    	fclose(fp);
+    	return false;
+    }
+    loaded[file_size] = '\0';
+    fclose(fp);
+
+    cJSON* root = cJSON_Parse(loaded);
+
+    lights_.nol = cJSON_GetObjectItem(root, "nol")->valueint;
+
+    cJSON* light_array = cJSON_GetObjectItem(root, "lights");
+
+    for (int i = 0; i < lights_.nol; i++) {
+        cJSON* light_obj = cJSON_GetArrayItem(light_array, i);
+        lights_.light[i].index = cJSON_GetObjectItem(light_obj, "index")->valueint;
+        lights_.light[i].nop = cJSON_GetObjectItem(light_obj, "nop")->valueint;
+
+        cJSON* part_name_array = cJSON_GetObjectItem(light_obj, "part_name");
+
+        for (int j = 0; j < lights_.light[i].nop; j++) {
+            cJSON* part_name_item = cJSON_GetArrayItem(part_name_array, j);
+            lights_.light[i].part_name[j] = (char*)malloc(strlen(part_name_item->valuestring) + 1);
+            strcpy(lights_.light[i].part_name[j], part_name_item->valuestring);
+            lights_.light[i].anim[j].brightness = 125;
+            lights_.light[i].anim[j].speed = 5200;
+        }
+    }
+    lights_.json = root;
+    free(loaded);
+    return true;
+}
+
+//---------------------------------------------------------
+// Uložení parametrů světlometů z proměnné do paměti
+//---------------------------------------------------------
+_Bool save_light_params(lights_t* in_lights) {
+	FILE *f = fopen(LIGHTS_PATH, "w");
+    if (f == NULL) {
+    	ESP_LOGE(TAG, "Error while opening file %s",LIGHTS_PATH);
+        return false;
+    }
+    cJSON* root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "nol", in_lights->nol);
+
+    cJSON* light_array = cJSON_AddArrayToObject(root, "lights");
+    for (int i = 0; i < in_lights->nol; i++) {
+        cJSON* light_obj = cJSON_CreateObject();
+        cJSON_AddNumberToObject(light_obj, "index", in_lights->light[i].index);
+        cJSON_AddNumberToObject(light_obj, "nop", in_lights->light[i].nop);
+
+        cJSON* part_name_array = cJSON_AddArrayToObject(light_obj, "part_name");
+        for (int j = 0; j < in_lights->light[i].nop; j++) {
+            cJSON_AddItemToArray(part_name_array, cJSON_CreateString(in_lights->light[i].part_name[j]));
+        }
+        cJSON_AddItemToArray(light_array, light_obj);
+    }
+
+	char *conf_to_save = cJSON_Print(root);
+	cJSON_Delete(root);
+	if (conf_to_save == NULL) {
+	    ESP_LOGE(TAG, "Failed to allocate memory for light parameters string");
+	    fclose(f);
+	    return false;
+	}
+	else {
+		size_t conf_to_save_len = strlen(conf_to_save);
+	    ESP_LOGI(TAG, "Saving light parameters: %s", conf_to_save);
+	    if (fwrite(conf_to_save, 1, conf_to_save_len, f) != conf_to_save_len) {
+	        ESP_LOGE(TAG, "Failed to save new light parameters file");
+	        free(conf_to_save);
+	        fclose(f);
+	        return false;
+	    }
+	    else {
+	        ESP_LOGI(TAG, "New light parameters file was saved successfully");
+	        free(conf_to_save);
+	        fclose(f);
+	        return true;
+	    }
+	}
+}
+
+//---------------------------------------------------------
+// Načtení souborů pro webové stránky
+//---------------------------------------------------------
 _Bool load_web(void) {
 	loaded_files = malloc(sizeof(files_t));
     // Načtení index.html z paměti
@@ -141,6 +249,44 @@ _Bool load_web(void) {
     	return false;
     }
     loaded_files->index_html[file_size] = '\0';
+    fclose(fp);
+/*
+    // Načtení index.css z paměti
+    fp = fopen(INDEX_CSS_PATH, "r");
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Error while opening file %s",INDEX_CSS_PATH);
+    	return false;
+    }
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+    loaded_files->index_css = (char *)malloc(file_size+1);
+    if (fread(loaded_files->index_css, file_size, 1, fp) == 0)
+    {
+    	ESP_LOGE(TAG, "Error while reading file %s",INDEX_CSS_PATH);
+    	fclose(fp);
+    	return false;
+    }
+    loaded_files->index_css[file_size] = '\0';
+    fclose(fp);
+*/
+    // Načtení index.js z paměti
+    fp = fopen(INDEX_JS_PATH, "r");
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Error while opening file %s",INDEX_JS_PATH);
+    	return false;
+    }
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+    loaded_files->index_js = (char *)malloc(file_size+1);
+    if (fread(loaded_files->index_js, file_size, 1, fp) == 0)
+    {
+    	ESP_LOGE(TAG, "Error while reading file %s",INDEX_JS_PATH);
+    	fclose(fp);
+    	return false;
+    }
+    loaded_files->index_js[file_size] = '\0';
     fclose(fp);
 
     // Načtení logo.svg z paměti
@@ -180,9 +326,51 @@ _Bool load_web(void) {
     }
     loaded_files->admin_html[file_size] = '\0';
     fclose(fp);
+/*
+    // Načtení admin.css z paměti
+    fp = fopen(ADMIN_CSS_PATH, "r");
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Error while opening file %s",ADMIN_CSS_PATH);
+    	return false;
+    }
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+    loaded_files->admin_css = (char *)malloc(file_size+1);
+    if (fread(loaded_files->admin_css, file_size, 1, fp) == 0)
+    {
+    	ESP_LOGE(TAG, "Error while reading file %s",ADMIN_CSS_PATH);
+    	fclose(fp);
+    	return false;
+    }
+    loaded_files->admin_css[file_size] = '\0';
+    fclose(fp);
+*/
+    // Načtení admin.js z paměti
+    fp = fopen(ADMIN_JS_PATH, "r");
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Error while opening file %s",ADMIN_JS_PATH);
+    	return false;
+    }
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+    loaded_files->admin_js = (char *)malloc(file_size+1);
+    if (fread(loaded_files->admin_js, file_size, 1, fp) == 0)
+    {
+    	ESP_LOGE(TAG, "Error while reading file %s",ADMIN_JS_PATH);
+    	fclose(fp);
+    	return false;
+    }
+    loaded_files->admin_js[file_size] = '\0';
+    fclose(fp);
+
     return true;
 }
 
+//---------------------------------------------------------
+// Uložení nového configu do paměti
+//---------------------------------------------------------
 _Bool save_config(user_config_t edited_u_conf, change_of_config_t config_changed) {
 	FILE *f = fopen(CONFIG_PATH, "w");
     if (f == NULL) {
@@ -232,7 +420,6 @@ _Bool save_config(user_config_t edited_u_conf, change_of_config_t config_changed
 	}
 
 	char *conf_to_save = cJSON_Print(conf_json);
-	ESP_LOGI(TAG, "New config: %s", conf_to_save);
 	cJSON_Delete(conf_json);
 	if (conf_to_save == NULL) {
 	    ESP_LOGE(TAG, "Failed to allocate memory for config string");
@@ -257,6 +444,9 @@ _Bool save_config(user_config_t edited_u_conf, change_of_config_t config_changed
 	}
 }
 
+//---------------------------------------------------------
+// Načtení a uložení výchozího configu
+//---------------------------------------------------------
 _Bool load_default_config(void) {
 	char *loaded_deaf_config;
     FILE *deaf_config_file = fopen(DEFAULT_CONFIG_PATH, "r");
