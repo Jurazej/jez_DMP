@@ -1,32 +1,48 @@
-const gateway = `ws://${window.location.hostname}/ws`;
+const url = `ws://${window.location.hostname}/ws`;
 let websocket;
 let generated = false;
 window.addEventListener("load", onLoad);
+
+//---------------------------------------------------------
+// Navázání spojení se serverem
+//---------------------------------------------------------
 function initWebSocket() {
     console.log("Trying to open a WebSocket connection...");
-    websocket = new WebSocket(gateway);
+    websocket = new WebSocket(url);
     websocket.onopen = onOpen;
     websocket.onclose = onClose;
     websocket.onmessage = onMessage;
 }
+
 function onOpen(event) {
     console.log("Connection opened");
     websocket.send(JSON.stringify({
         "type": "status_sync"
     }));
 }
+
 function onClose(event) {
     console.log("Connection closed");
     setTimeout(initWebSocket, 2000);
 }
+
+function onLoad(event) {
+    initWebSocket();
+}
+
+//---------------------------------------------------------
+// Zpracování přijaté WebSocket zprávy
+//---------------------------------------------------------
 function onMessage(event) {
     console.log(event.data);
     const rmsg = JSON.parse(event.data);
+    // Aktualizace uživatelského rozhraní podle přijatých parametrů po spuštění animace
     if (rmsg.type == "animate") {
         document.getElementById(`aSelect${rmsg.id}_${rmsg.value.part}`).selectedIndex = rmsg.value.type;
         document.getElementById(`aRange${rmsg.id}_${rmsg.value.part}_1`).value = rmsg.value.brightness;
         document.getElementById(`aRange${rmsg.id}_${rmsg.value.part}_2`).value = rmsg.value.speed;
     }
+    // Generace nebo aktualizace uživatelského rozhraní podle přijatých parametrů po načtení stránky
     else if (rmsg.type == "status_sync") {
         if (generated == false) {
             generateControls(rmsg.params);
@@ -40,10 +56,11 @@ function onMessage(event) {
         }
     }
 }
-function onLoad(event) {
-    initWebSocket();
-}
 
+//---------------------------------------------------------
+// Odesílá JSON zprávu typu "animate" přes WebSocket s parametry
+// pro spuštění animace na části světla
+//---------------------------------------------------------
 function animButton(i,j) {
     const params = {};
     params.part = j;
@@ -53,6 +70,9 @@ function animButton(i,j) {
     wSend("animate",i,params);
 }
 
+//---------------------------------------------------------
+// Odeslání WebSocket zprávy na server
+//---------------------------------------------------------
 function wSend(type,id,value=1) {
     websocket.send(JSON.stringify({
         "type": type,
@@ -60,7 +80,10 @@ function wSend(type,id,value=1) {
         "value": value
     }));
 }
-
+//---------------------------------------------------------
+// Upravuje styl navigačního menu s ovládacími prvky pro
+// světla v závislosti na počtu světlometů (nol).
+//---------------------------------------------------------
 function navMenu(id,nol) {
     if (nol == 2) {
         if (id == 1) {
@@ -146,6 +169,23 @@ function navMenu(id,nol) {
     }
 }
 
+//---------------------------------------------------------
+// Zobrazení nebo skrytí informační karty
+//---------------------------------------------------------
+function toggleInfo(input) {
+    const info = document.getElementById("infoFrame");
+    if (input == 1) {
+        info.style.display = "inline";
+    }
+    else {
+        info.style.display = "none";
+    }
+}
+
+//---------------------------------------------------------
+// Generuje uživatelské rozhraní pro ovládání světel na základě parametrů
+// přijatých ze serveru (počet světel, počet částí světla, názvy částí světla...)
+//---------------------------------------------------------
 function generateControls(input) {
     generated = true;
     const lightCount = input.nol;
@@ -166,7 +206,7 @@ function generateControls(input) {
         const lightContainer = document.getElementById(`lightContainer${i}`);
         for (let j = 1; j <= input.lights[i-1].nop; j++) {
             lightContainer.innerHTML += `
-            <div class="main">
+            <div class="cardContainer">
                 <div class="card">
                     <h2>Ovládání části ${input.lights[i-1].part_name[j-1]}</h2>
                     <select class="aSelect" id="aSelect${i-1}_${j-1}">
@@ -187,10 +227,10 @@ function generateControls(input) {
                         <label class="rangeLabel" for="aRange${i-1}_${j-1}_2">Rychlost:</label>
                         <input class="speed" type="range" min="200" max="10200" value="5200" id="aRange${i-1}_${j-1}_2">
                     </div>
-                    <p><button onclick="animButton(${i-1},${j-1})">Odeslat</button></p>
+                    <button onclick="animButton(${i-1},${j-1})">Potvrdit</button>
                 </div>
             </div>
             `;
         }
     }
-} 
+}

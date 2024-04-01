@@ -1,0 +1,7 @@
+{
+  "ssid": "Jez_DMP",
+  "wifi_pass": "12345678",
+  "maxcon": 2,
+  "mdns": "jezdmp",
+  "admin_pass": "admin"
+}

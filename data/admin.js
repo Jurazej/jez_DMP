@@ -1,4 +1,4 @@
-const gateway = `wss://${window.location.hostname}/wss`;
+const url = `wss://${window.location.hostname}/wss`;
 let websocket;
 let savelogin = false;
 let inputpass;
@@ -6,22 +6,24 @@ let last_default_config = 0;
 let last_restart = 0;
 let nolDebug;
 let segDebug;
-navmenu(2);
+navmenu(1);
 window.addEventListener("load", onLoad);
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+//---------------------------------------------------------
+// Navázání spojení se serverem
+//---------------------------------------------------------
 function initWebSocket() {
     console.log("Trying to open a WebSocket connection...");
-    websocket = new WebSocket(gateway);
+    websocket = new WebSocket(url);
     websocket.onopen = onOpen;
     websocket.onclose = onClose;
     websocket.onmessage = onMessage;
 }
+
 function onLoad(event) {
     initWebSocket();
 }
+
 function onOpen(event) {
     console.log("Connection opened");
     document.getElementById("status").style.display = "none"; 
@@ -30,10 +32,22 @@ function onOpen(event) {
     document.getElementById("loginButton").style.cursor = "auto";
     autologin();
 }
+
 function onClose(event) {
     console.log("Connection closed");
     setTimeout(initWebSocket, 2000);
 }
+
+//---------------------------------------------------------
+// Funkce pro zpoždění v kódu
+//---------------------------------------------------------
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+//---------------------------------------------------------
+// Zpracování přijaté WebSocket zprávy
+//---------------------------------------------------------
 async function onMessage(event) {
     console.log(event.data);
     const rmsg = JSON.parse(event.data);
@@ -94,6 +108,9 @@ async function onMessage(event) {
     }             
 }
 
+//---------------------------------------------------------
+// Odeslání WebSocket zprávy na server
+//---------------------------------------------------------
 function wSend(type,value=1) {
     websocket.send(JSON.stringify({
         "type": type,
@@ -101,6 +118,9 @@ function wSend(type,value=1) {
     }));
 }
 
+//---------------------------------------------------------
+// Automatické přihlášení pomocí hesla uloženého v cookies
+//---------------------------------------------------------
 function autologin(){
     let loadedpass = getCookie("storedpass");
     if (loadedpass != "") {
@@ -111,6 +131,9 @@ function autologin(){
     }
 }
 
+//---------------------------------------------------------
+// Tlačítko pro přihlášení
+//---------------------------------------------------------
 function login() {
     savelogin = true;
     document.getElementById("loginButton").disabled = true;
@@ -121,6 +144,9 @@ function login() {
     }
 }
 
+//---------------------------------------------------------
+// Tlačítko pro restartování systému
+//---------------------------------------------------------
 async function restart(input) {
     if (last_restart== 0) {
         last_restart = 1;
@@ -140,6 +166,9 @@ async function restart(input) {
     }
 }
 
+//---------------------------------------------------------
+// Tlačítko pro nastavení výchozích hodnot nastavení
+//---------------------------------------------------------
 async function defaultConfig(input) {
     if (last_default_config == 0) {
         last_default_config = 1;
@@ -157,6 +186,9 @@ async function defaultConfig(input) {
     }
 }
 
+//---------------------------------------------------------
+// Získání hodnoty uložené v cookies
+//---------------------------------------------------------
 function getCookie(cname) {
     let name = cname + "=";
     let decodedCookie = decodeURIComponent(document.cookie);
@@ -173,6 +205,9 @@ function getCookie(cname) {
     return "";
 }
 
+//---------------------------------------------------------
+// Získání hodnot ze vstupních polí formuláře nastavení a odeslání na server
+//---------------------------------------------------------
 function changeConfig() {
     let configSsid = document.getElementById("configSsid").value
     let configWifipass = document.getElementById("configWifipass").value
@@ -201,6 +236,9 @@ function changeConfig() {
     }
 }
 
+//---------------------------------------------------------
+// Kontrola délky vstupu
+//---------------------------------------------------------
 function checkLength(inp) {
     if (inp.value != "") {
         if ((inp.value.length > inp.maxLength) || (inp.value.length < inp.minLength)) {
@@ -209,6 +247,10 @@ function checkLength(inp) {
         }
     }
 }
+
+//---------------------------------------------------------
+// Kontrola hodnoty vstupu
+//---------------------------------------------------------
 function checkValue(inp) {
     if (inp.value != "") {
         if ((Number(inp.value) > Number(inp.max)) || (Number(inp.value) < Number(inp.min))) {
@@ -218,6 +260,9 @@ function checkValue(inp) {
     }
 }
 
+//---------------------------------------------------------
+// Kontrola hodnoty vstupu typu maska
+//---------------------------------------------------------
 function validateMaskInput(input) {
     const inputValue = input.value;
     const pattern = /^[01]+$/;
@@ -227,6 +272,9 @@ function validateMaskInput(input) {
     }
 }
 
+//---------------------------------------------------------
+// Generace vstupů podle počtu světlometů 
+//---------------------------------------------------------
 function generateLights(input) {
     if (Number(input.value) != 1) {
         const lightCount = input.value;
@@ -265,6 +313,9 @@ function generateLights(input) {
     }
 }
 
+//---------------------------------------------------------
+// Generace vstupů podle počtu driverů na světlometu
+//---------------------------------------------------------
 function generateDrivers(input, number) {
     if (Number(input.value) <= Number(input.max)) {
         const driverCount = input.value;
@@ -291,6 +342,9 @@ function generateDrivers(input, number) {
     }
 }
 
+//---------------------------------------------------------
+// Generace vstupů podle počtu částí světlometu
+//---------------------------------------------------------
 function generateParts(input, number) {
     if (Number(input.value) <= Number(input.max)) {
         const partCount = input.value;
@@ -318,6 +372,9 @@ function generateParts(input, number) {
     } 
 }
 
+//---------------------------------------------------------
+// Generace prvků pro debug světlometu 
+//---------------------------------------------------------
 function generateDebug(input) {
     let data = {};
     if (inputpass == null) {
@@ -352,6 +409,10 @@ function generateDebug(input) {
     }
 }
 
+//---------------------------------------------------------
+// Odeslat informaci o rozsvícení / zhasnutí segmentu
+// při debugu parametrizace světlometu
+//---------------------------------------------------------
 function debugSend(input, light, index) {
     let formData = {};
     if (inputpass == null) {
@@ -365,33 +426,9 @@ function debugSend(input, light, index) {
     wSend("debug",formData);
 }
 
-function navmenu(id) {
-    if (id == 1)    {
-        document.getElementById("nav1").style.backgroundColor = "#100e91";
-        document.getElementById("nav2").style.backgroundColor = "#2a3fc9";
-        document.getElementById("nav3").style.backgroundColor = "#2a3fc9";
-        document.getElementById("settingsForm").style.display = "block";
-        document.getElementById("paramForm").style.display = "none";
-        document.getElementById("debugForm").style.display = "none";
-    }
-    else if (id == 2) {
-        document.getElementById("nav2").style.backgroundColor = "#100e91";
-        document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
-        document.getElementById("nav3").style.backgroundColor = "#2a3fc9";
-        document.getElementById("settingsForm").style.display = "none";
-        document.getElementById("paramForm").style.display = "block";
-        document.getElementById("debugForm").style.display = "none";
-    }
-    else if (id == 3) {
-        document.getElementById("nav3").style.backgroundColor = "#100e91";
-        document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
-        document.getElementById("nav2").style.backgroundColor = "#2a3fc9";
-        document.getElementById("settingsForm").style.display = "none";
-        document.getElementById("paramForm").style.display = "none";
-        document.getElementById("debugForm").style.display = "block";
-    }
-}
-
+//---------------------------------------------------------
+// Získání veškerých parametrů pro parametrizaci světlometu
+//---------------------------------------------------------
 function collectParamFormData() {
     const paramFormData = {};
     if (inputpass == null) {
@@ -480,4 +517,34 @@ function collectParamFormData() {
     paramFormData.lights = lights;
     console.log(JSON.stringify(paramFormData));
     wSend("light_params",paramFormData);
+}
+
+//---------------------------------------------------------
+// Ovládání navigačního menu
+//---------------------------------------------------------
+function navmenu(id) {
+    if (id == 1)    {
+        document.getElementById("nav1").style.backgroundColor = "#100e91";
+        document.getElementById("nav2").style.backgroundColor = "#2a3fc9";
+        document.getElementById("nav3").style.backgroundColor = "#2a3fc9";
+        document.getElementById("settingsForm").style.display = "block";
+        document.getElementById("paramForm").style.display = "none";
+        document.getElementById("debugForm").style.display = "none";
+    }
+    else if (id == 2) {
+        document.getElementById("nav2").style.backgroundColor = "#100e91";
+        document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
+        document.getElementById("nav3").style.backgroundColor = "#2a3fc9";
+        document.getElementById("settingsForm").style.display = "none";
+        document.getElementById("paramForm").style.display = "block";
+        document.getElementById("debugForm").style.display = "none";
+    }
+    else if (id == 3) {
+        document.getElementById("nav3").style.backgroundColor = "#100e91";
+        document.getElementById("nav1").style.backgroundColor = "#2a3fc9";
+        document.getElementById("nav2").style.backgroundColor = "#2a3fc9";
+        document.getElementById("settingsForm").style.display = "none";
+        document.getElementById("paramForm").style.display = "none";
+        document.getElementById("debugForm").style.display = "block";
+    }
 }

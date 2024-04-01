@@ -16,6 +16,6 @@ esp_err_t get_admin_handler(httpd_req_t *req);
 //esp_err_t get_admin_css_handler(httpd_req_t *req);
 esp_err_t get_admin_js_handler(httpd_req_t *req);
 httpd_handle_t setup_server(void);
-httpd_handle_t setup_wss_server(void);
+httpd_handle_t setup_secure_server(void);
 
 #endif

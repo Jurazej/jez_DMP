@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="cs">
 <head>
-    <title>Jiri Jez DMP</title>
+    <title>Demonstrátor světlometů</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <link rel="icon" href="data:,">
     <style>
@@ -10,19 +10,24 @@
             text-align: center;
         }
 
-        h1 {
-            margin: 0;
-            font-size: 30px;
-            color: white;
-            text-align: right;
-            padding-left: 10px;
-            padding: 21px;
+        .logo {
+            max-height: 70px;
+            padding: 5px;
+            padding-right: 0px;
+            float: left;
         }
 
-        .logo {
-            max-width: 100px;
+        .hella_logo {
+            max-height: 70px;
             padding: 5px;
             float: left;
+        }
+
+        .info {
+            max-height: 70px;
+            padding: 5px;
+            float: right;
+            cursor: pointer;
         }
 
         h2 {
@@ -31,11 +36,25 @@
             color: #2a3fc9;
         }
 
+        .infoFrame {
+            display: none;
+            position: fixed;
+            z-index: 99;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            padding-top: 5%;
+            background-color: rgba(22, 22, 22, 0.6);
+            text-align: center;
+            font-size: 20px;
+        }
+
         .card {
             background-color: #F8F7F9;
-            box-shadow: 2px 2px 15px 5px rgba(140, 140, 140, .5);
-            padding-top: 10px;
-            padding-bottom: 20px;
+            box-shadow: 0px 2px 10px #36363660;
+            padding: 10px 0 10px;
             border-radius: 10px;
             margin: 0 auto;
         }
@@ -44,6 +63,7 @@
             overflow: hidden;
             background-color: #2a3fc9;
             width: 100%;
+            box-shadow: 0px 2px 10px #363636b0;
         }
 
         body {
@@ -88,13 +108,17 @@
             background-color: #00a2ff;
         }
 
-        .main {
+        .cardContainer {
             padding: 30px;
             max-width: 500px;
             margin: 0 auto;
         }
 
-        .main button {
+        .card p {
+            margin: 0px 10px 10px 10px;
+        }
+
+        .card button {
             padding: 15px 50px;
             font-size: 30px;
             text-align: center;
@@ -104,9 +128,11 @@
             border: #0ffa6d;
             border-radius: 5px;
             user-select: none;
+            margin-top: 15px;
+            cursor: pointer;
         }
 
-        .main button:active {
+        .card button:active {
             background-color: #3e8e41;
             transform: translateY(2px);
         }
@@ -129,13 +155,15 @@
             appearance: none;
             width: 25px;
             height: 25px; 
-            background: #04AA6D;
+            background: #0c35e9;
             cursor: pointer;
+            border-radius: 5px;
         }
 
         .slideContainer label {
             text-align: left;
             padding-left: 5%;
+            padding-top: 10px;
             display: block;
             font-size: 20px;
         }
@@ -148,11 +176,11 @@
             appearance: none;
             -webkit-appearance: none;
             width: 80%;
-            font-size: 1.15rem;
-            padding: 0.675em 6em 0.675em 1em;
+            font-size: 20px;
+            padding: 15px 0px 15px 10px;
             background-color: #fff;
             border: 1px solid #caced1;
-            border-radius: 0.25rem;
+            border-radius: 6px;
             margin-bottom: 10px;
             color: #000;
             cursor: pointer;
@@ -171,13 +199,34 @@
         .static {
             display: block;
         }
+
+        hr.divider {
+            border-top: 3px dashed #bbb;
+            margin-top: 12px;
+        }
     </style>
 </head>
-
 <body>
     <div class="top">
         <img src="logo.svg" alt="Logo" class="logo">
-        <h1>Jiří Jež DMP</h1>
+        <img src="hella_logo.svg" alt="Forvia Logo" class="hella_logo">
+        <img src="info_icon.svg" alt="Info" class="info" onclick="toggleInfo(1)">
+    </div>
+    <div class="infoFrame" id="infoFrame">
+        <div class="cardContainer">
+            <div class="card">
+                <h2>Nápověda</h2>      
+                <p>Na dolní straně webové stránky se v případě připojení více světlometů nachází volba světlometu.</p>
+                <p>Na každé části světlometu lze spustit jiná animace.</p>
+                <p><b>Pro spuštění animace je nutné kliknout na tlačítko "Potvrdit" u dané části světlometu.</b></p>
+                <hr class="divider">
+                <p>Webovou stránku vytvořil Jiří&nbsp;Jež.</p>
+                <p>Ovládání světlometu a fyzickou stránku projektu realizoval Ondřej&nbsp;Kuba.</p>
+                <p>2024</p>
+                <button onclick="toggleInfo(0)">Zavřít</button>
+            </div>
+            <br>
+        </div>
     </div>
     <div id="lightContainer1">
     </div>

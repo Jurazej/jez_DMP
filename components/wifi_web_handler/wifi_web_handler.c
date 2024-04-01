@@ -30,17 +30,9 @@ struct async_resp_arg {
 // Nastavení a spuštění WiFi Access Point (AP)
 //---------------------------------------------------------
 esp_err_t wifi_init_softap(void) {
-    //Inicializace NVS (Non-Volatile Storage) - potřebné pro konfiguraci WiFi
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-
 	esp_netif_init();
 	esp_event_loop_create_default();
-    esp_netif_create_default_wifi_ap();
+	esp_netif_create_default_wifi_ap();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&cfg);
     wifi_config_t wifi_config = {
@@ -51,13 +43,8 @@ esp_err_t wifi_init_softap(void) {
                 .authmode = WIFI_AUTH_WPA_WPA2_PSK
         },
     };
-    int i;
-    for (i = 0; i < (strlen(user_config->ssid)+1); i++) {
-    	wifi_config.ap.ssid[i] = *((user_config->ssid)+i);
-    }
-    for (i = 0; i < (strlen(user_config->wifi_pass)+1); i++) {
-    	wifi_config.ap.password[i] = *((user_config->wifi_pass)+i);
-    }
+    strcpy((char*)wifi_config.ap.ssid, user_config->ssid);
+    strcpy((char*)wifi_config.ap.password, user_config->wifi_pass);
 
     esp_wifi_set_mode(WIFI_MODE_AP);
     esp_wifi_set_config(WIFI_IF_AP, &wifi_config);
@@ -88,16 +75,6 @@ esp_err_t get_index_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-/*
-esp_err_t get_index_css_handler(httpd_req_t *req) {
-    if (httpd_resp_send(req, loaded_files->index_css, HTTPD_RESP_USE_STRLEN) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send index.html");
-        return ESP_FAIL;
-    }
-    return ESP_OK;
-}
-*/
-
 esp_err_t get_index_js_handler(httpd_req_t *req) {
     if (httpd_resp_send(req, loaded_files->index_js, HTTPD_RESP_USE_STRLEN) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send index.html");
@@ -118,6 +95,26 @@ esp_err_t get_logo_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
+esp_err_t get_logo_hella_handler(httpd_req_t *req) {
+    httpd_resp_set_type(req, "image/svg+xml");
+
+    if (httpd_resp_send(req, loaded_files->logo_hella_svg, HTTPD_RESP_USE_STRLEN) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send logo_hella.svg");
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
+
+esp_err_t get_info_icon_handler(httpd_req_t *req) {
+    httpd_resp_set_type(req, "image/svg+xml");
+
+    if (httpd_resp_send(req, loaded_files->info_icon_svg, HTTPD_RESP_USE_STRLEN) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send info_icon.svg");
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
+
 esp_err_t get_admin_handler(httpd_req_t *req) {
     if (httpd_resp_send(req, loaded_files->admin_html, HTTPD_RESP_USE_STRLEN) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send admin.html");
@@ -133,16 +130,6 @@ esp_err_t get_admin_js_handler(httpd_req_t *req) {
     }
     return ESP_OK;
 }
-
-/*
-esp_err_t get_admin_css_handler(httpd_req_t *req) {
-    if (httpd_resp_send(req, loaded_files->admin_css, HTTPD_RESP_USE_STRLEN) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send admin.css");
-        return ESP_FAIL;
-    }
-    return ESP_OK;
-}
-*/
 
 //---------------------------------------------------------
 // Uzavření soketu HTTP serveru
@@ -171,14 +158,6 @@ httpd_handle_t setup_server(void) {
         .handler = get_index_handler,
         .user_ctx = NULL};
 
-    /*
-    httpd_uri_t uri_index_css_get = {
-        .uri = "/index.css",
-        .method = HTTP_GET,
-        .handler = get_index_css_handler,
-        .user_ctx = NULL};
-	*/
-
     httpd_uri_t uri_index_js_get = {
         .uri = "/index.js",
         .method = HTTP_GET,
@@ -191,6 +170,18 @@ httpd_handle_t setup_server(void) {
 		.handler = get_logo_handler,
 		.user_ctx = NULL};
 
+    httpd_uri_t uri_logo_hella_get = {
+		.uri = "/hella_logo.svg",
+		.method = HTTP_GET,
+		.handler = get_logo_hella_handler,
+		.user_ctx = NULL};
+
+    httpd_uri_t uri_info_icon_get = {
+		.uri = "/info_icon.svg",
+		.method = HTTP_GET,
+		.handler = get_info_icon_handler,
+		.user_ctx = NULL};
+
     httpd_uri_t ws = {
 		.uri        = "/ws",
 		.method     = HTTP_GET,
@@ -201,9 +192,10 @@ httpd_handle_t setup_server(void) {
 
     if (httpd_start(&server, &config) == ESP_OK) {
         httpd_register_uri_handler(server, &uri_get);
-        //httpd_register_uri_handler(server, &uri_index_css_get);
         httpd_register_uri_handler(server, &uri_index_js_get);
         httpd_register_uri_handler(server, &uri_logo_get);
+        httpd_register_uri_handler(server, &uri_logo_hella_get);
+        httpd_register_uri_handler(server, &uri_info_icon_get);
         httpd_register_uri_handler(server, &ws);
     }
 
@@ -278,8 +270,8 @@ _Bool check_client_alive_cb(wss_keep_alive_t h, int fd)
 //---------------------------------------------------------
 // Vytvoření a konfiguraci HTTPS serveru
 //---------------------------------------------------------
-httpd_handle_t setup_wss_server(void) {
-    // Prepare keep-alive engine
+httpd_handle_t setup_secure_server(void) {
+    // Připravit službu keep-alive
     wss_keep_alive_config_t keep_alive_config = KEEP_ALIVE_CONFIG_DEFAULT();
     keep_alive_config.not_alive_after_ms = 300000;
     keep_alive_config.client_not_alive_cb = client_not_alive_cb;
@@ -321,13 +313,6 @@ httpd_handle_t setup_wss_server(void) {
 		.method = HTTP_GET,
 		.handler = get_admin_js_handler,
 		.user_ctx = NULL};
-/*
-    httpd_uri_t uri_admin_css_get = {
-		.uri = "/admin.css",
-		.method = HTTP_GET,
-		.handler = get_admin_css_handler,
-		.user_ctx = NULL};
-*/
 
     httpd_uri_t uri_logo_get = {
 		.uri = "/logo.svg",
@@ -338,7 +323,6 @@ httpd_handle_t setup_wss_server(void) {
 	if (httpd_ssl_start(&wss_server, &ssl_config) == ESP_OK) {
 	    httpd_register_uri_handler(wss_server, &ws);
         httpd_register_uri_handler(wss_server, &uri_admin_get);
-        //httpd_register_uri_handler(wss_server, &uri_admin_css_get);
         httpd_register_uri_handler(wss_server, &uri_admin_js_get);
         httpd_register_uri_handler(wss_server, &uri_logo_get);
 	    wss_keep_alive_set_user_ctx(keep_alive, wss_server);

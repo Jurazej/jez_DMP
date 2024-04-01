@@ -1,0 +1,7 @@
+{
+  "ssid": "Demonstrator svetlometu",
+  "wifi_pass": "12345678",
+  "maxcon": 5,
+  "mdns": "ovladani",
+  "admin_pass": "admin"
+}

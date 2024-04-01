@@ -20,10 +20,11 @@ void init_spiffs(void) {
     esp_vfs_spiffs_conf_t conf = {
         .base_path = "/spiffs",
         .partition_label = NULL,
-        .max_files = 10,
+        .max_files = 12,
         .format_if_mount_failed = true};
 
-    ESP_ERROR_CHECK(esp_vfs_spiffs_register(&conf));	//Registrace SPIFFS pomocí nastavené konfigurace
+    //Registrace SPIFFS pomocí nastavené konfigurace
+    ESP_ERROR_CHECK(esp_vfs_spiffs_register(&conf));
 }
 
 //---------------------------------------------------------
@@ -250,26 +251,7 @@ _Bool load_web(void) {
     }
     loaded_files->index_html[file_size] = '\0';
     fclose(fp);
-/*
-    // Načtení index.css z paměti
-    fp = fopen(INDEX_CSS_PATH, "r");
-    if (fp == NULL) {
-    	ESP_LOGE(TAG, "Error while opening file %s",INDEX_CSS_PATH);
-    	return false;
-    }
-    fseek(fp, 0, SEEK_END);
-    file_size = ftell(fp);
-    rewind(fp);
-    loaded_files->index_css = (char *)malloc(file_size+1);
-    if (fread(loaded_files->index_css, file_size, 1, fp) == 0)
-    {
-    	ESP_LOGE(TAG, "Error while reading file %s",INDEX_CSS_PATH);
-    	fclose(fp);
-    	return false;
-    }
-    loaded_files->index_css[file_size] = '\0';
-    fclose(fp);
-*/
+
     // Načtení index.js z paměti
     fp = fopen(INDEX_JS_PATH, "r");
     if (fp == NULL) {
@@ -308,6 +290,44 @@ _Bool load_web(void) {
     loaded_files->logo_svg[file_size] = '\0';
     fclose(fp);
 
+    // Načtení hella_logo.svg z paměti
+    fp = fopen(LOGO_HELLA_PATH, "r");
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Error while opening file %s",LOGO_HELLA_PATH);
+    	return false;
+    }
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+    loaded_files->logo_hella_svg = (char *)malloc(file_size+1);
+    if (fread(loaded_files->logo_hella_svg, file_size, 1, fp) == 0)
+    {
+    	ESP_LOGE(TAG, "Error while reading file %s",LOGO_HELLA_PATH);
+    	fclose(fp);
+    	return false;
+    }
+    loaded_files->logo_hella_svg[file_size] = '\0';
+    fclose(fp);
+
+    // Načtení info_icon.svg z paměti
+    fp = fopen(INFO_ICON_PATH, "r");
+    if (fp == NULL) {
+    	ESP_LOGE(TAG, "Error while opening file %s",INFO_ICON_PATH);
+    	return false;
+    }
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+    loaded_files->info_icon_svg = (char *)malloc(file_size+1);
+    if (fread(loaded_files->info_icon_svg, file_size, 1, fp) == 0)
+    {
+    	ESP_LOGE(TAG, "Error while reading file %s",INFO_ICON_PATH);
+    	fclose(fp);
+    	return false;
+    }
+    loaded_files->info_icon_svg[file_size] = '\0';
+    fclose(fp);
+
     // Načtení admin.html z paměti
     fp = fopen(ADMIN_PATH, "r");
     if (fp == NULL) {
@@ -326,26 +346,7 @@ _Bool load_web(void) {
     }
     loaded_files->admin_html[file_size] = '\0';
     fclose(fp);
-/*
-    // Načtení admin.css z paměti
-    fp = fopen(ADMIN_CSS_PATH, "r");
-    if (fp == NULL) {
-    	ESP_LOGE(TAG, "Error while opening file %s",ADMIN_CSS_PATH);
-    	return false;
-    }
-    fseek(fp, 0, SEEK_END);
-    file_size = ftell(fp);
-    rewind(fp);
-    loaded_files->admin_css = (char *)malloc(file_size+1);
-    if (fread(loaded_files->admin_css, file_size, 1, fp) == 0)
-    {
-    	ESP_LOGE(TAG, "Error while reading file %s",ADMIN_CSS_PATH);
-    	fclose(fp);
-    	return false;
-    }
-    loaded_files->admin_css[file_size] = '\0';
-    fclose(fp);
-*/
+
     // Načtení admin.js z paměti
     fp = fopen(ADMIN_JS_PATH, "r");
     if (fp == NULL) {

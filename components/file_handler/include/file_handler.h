@@ -3,12 +3,12 @@
 
 // Umístění souborů
 #define INDEX_PATH "/spiffs/index.html"
-#define INDEX_CSS_PATH "/spiffs/index.css"
 #define INDEX_JS_PATH "/spiffs/index.js"
 #define LOGO_PATH "/spiffs/logo.svg"
+#define LOGO_HELLA_PATH "/spiffs/hella_logo.svg"
+#define INFO_ICON_PATH "/spiffs/info_icon.svg"
 #define ADMIN_PATH "/spiffs/admin.html"
 #define ADMIN_JS_PATH "/spiffs/admin.js"
-#define ADMIN_CSS_PATH "/spiffs/admin.css"
 #define DEFAULT_CONFIG_PATH "/spiffs/default_config.txt"
 #define CONFIG_PATH "/spiffs/config.txt"
 #define LIGHTS_PATH "/spiffs/lights.txt"
@@ -18,11 +18,11 @@
 typedef struct {
 	char* index_html;
 	char* index_js;
-	//char* index_css;
 	char* logo_svg;
 	char* admin_html;
 	char* admin_js;
-	//char* admin_css;
+	char* logo_hella_svg;
+	char* info_icon_svg;
 }files_t;
 
 typedef struct {
